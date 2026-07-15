@@ -77,91 +77,70 @@ class PesananController extends Controller
      * Form pemesanan
      */
     public function create()
-    {
-        $layanan = Layanan::all();
+{
+    $layanan = Layanan::all();
 
-        return view('pesanan.form', [
-            'layanan' => $layanan
-        ]);
-    }
+    $ongkos = [
+        'Pontianak Kota' => 5000,
+        'Pontianak Selatan' => 7000,
+        'Pontianak Timur' => 8000,
+        'Pontianak Barat' => 6000,
+        'Pontianak Utara' => 9000,
+    ];
+
+    return view('pesanan.form', [
+        'layanan' => $layanan,
+        'ongkos' => $ongkos,
+    ]);
+}
 
     /**
      * Simpan pesanan
      */
     public function store(Request $request)
-    {
-        $data = $request->validate([
+{
+    $request->validate([
+        'layanan_id' => 'required|exists:layanans,id',
+        'nama' => 'required|string|max:100',
+        'telepon' => 'required|string|max:20',
+        'alamat' => 'required|string',
+        'jumlah' => 'required|integer|min:1',
+        'ukuran' => 'required|array',
+        'metode' => 'required|in:antar,jemput',
+        'foto.*' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+    ]);
 
-            'layanan_id' => [
-                'required',
-                'exists:layanans,id'
-            ],
+    $foto = null;
 
-            'nama' => [
-                'required',
-                'string',
-                'max:100'
-            ],
-
-            'nomor_hp' => [
-                'required',
-                'string',
-                'max:20'
-            ],
-
-            'alamat' => [
-                'required',
-                'string'
-            ],
-
-            'jumlah_sepatu' => [
-                'required',
-                'integer',
-                'min:1'
-            ],
-
-            'ukuran_sepatu' => [
-                'required',
-                'string'
-            ],
-
-            'foto_sepatu' => [
-                'nullable',
-                'image',
-                'max:2048'
-            ],
-
-            'metode_pengantaran' => [
-                'required',
-                'in:antar,jemput'
-            ],
-
-            'pin_lokasi' => [
-                'required_if:metode_pengantaran,jemput',
-                'nullable',
-                'string'
-            ],
-
-        ]);
-
-        if ($request->hasFile('foto_sepatu')) {
-            $data['foto_sepatu'] = $request
-                ->file('foto_sepatu')
-                ->store('foto-sepatu', 'public');
-        }
-
-        $data['status'] = 'Menunggu Pembayaran';
-
-        if (auth()->check()) {
-            $data['user_id'] = auth()->id();
-        }
-
-        $pesanan = Pesanan::create($data);
-
-        return redirect()
-            ->route('pesanan.show', $pesanan->id)
-            ->with('success', 'Pesanan berhasil dibuat');
+    if ($request->hasFile('foto')) {
+        $foto = $request->file('foto')[0]->store('foto-sepatu', 'public');
     }
+
+    $layanan = Layanan::find($request->layanan_id);
+    $totalBiaya = $layanan->harga * $request->jumlah;
+
+$pesanan = Pesanan::create([
+    'user_id' => auth()->id(),
+    'layanan_id' => $request->layanan_id,
+    'nomor_pesanan' => 'PSN-' . time(),
+    'nama' => $request->nama,
+    'nomor_hp' => $request->telepon,
+    'alamat' => $request->alamat,
+    'wilayah' => $request->kecamatan,
+    'jumlah_sepatu' => $request->jumlah,
+    'ukuran_sepatu' => implode(',', $request->ukuran),
+    'foto_sepatu' => $foto,
+    'metode_pengantaran' => $request->metode,
+    'pin_lokasi' => $request->alamat_jemput,
+    'total_biaya' => $totalBiaya,
+    'status' => 'Menunggu Verifikasi Admin',
+]);
+
+
+    return redirect()
+        ->route('pesanan.show', $pesanan->id)
+        ->with('success', 'Pesanan berhasil dibuat.');
+}
 
     /**
      * Detail pesanan
@@ -193,6 +172,65 @@ class PesananController extends Controller
 
         return view('pesanan.index', [
             'pesanan' => $pesanan
+        ]);
+    }
+
+    /**
+     * Halaman 4 - Upload Bukti Pembayaran (khusus Transfer Bank).
+     */
+    public function pembayaran(Request $request)
+    {
+        $pesanan = $request->session()->get('pesanan_sukses');
+
+        if (! $pesanan || ($pesanan['metode_bayar'] ?? null) !== 'transfer') {
+            return redirect()->route('pesanan.beranda');
+        }
+
+        return view('pesanan.pembayaran', [
+            'pesanan'  => $pesanan,
+            'rekening' => config('layanan.kontak.rekening', []),
+        ]);
+    }
+
+    /**
+     * Proses upload bukti pembayaran lalu lanjut ke halaman Berhasil.
+     */
+    public function prosesPembayaran(Request $request)
+    {
+        $pesanan = $request->session()->get('pesanan_sukses');
+
+        if (! $pesanan) {
+            return redirect()->route('pesanan.beranda');
+        }
+
+        $request->validate([
+            'bukti' => ['required', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:5120'],
+        ], [
+            'bukti.required' => 'Silakan unggah bukti pembayaran terlebih dahulu.',
+            'bukti.mimes'    => 'Format berkas harus JPG, PNG, atau PDF.',
+            'bukti.max'      => 'Ukuran berkas maksimal 5 MB.',
+        ]);
+
+        $pesanan['bukti_pembayaran'] = $request->file('bukti')->store('bukti-pembayaran', 'public');
+        $request->session()->put('pesanan_sukses', $pesanan);
+
+        return redirect()->route('pesanan.berhasil')
+            ->with('sukses', 'Bukti pembayaran berhasil dikirim. Menunggu verifikasi admin.');
+    }
+
+    /**
+     * Halaman 5 - Pesanan Berhasil.
+     */
+    public function berhasil(Request $request)
+    {
+        $pesanan = $request->session()->get('pesanan_sukses');
+
+        if (! $pesanan) {
+            return redirect()->route('pesanan.beranda');
+        }
+
+        return view('pesanan.berhasil', [
+            'pesanan' => $pesanan,
         ]);
     }
 

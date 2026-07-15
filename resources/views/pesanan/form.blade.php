@@ -5,10 +5,10 @@
 @section('content')
 @php
     $petaHarga = collect($layanan)->map(fn ($i) => [
-        'nama'  => $i['nama'],
+        'nama'  => $i['nama_layanan'],
         'harga' => $i['harga'],
     ]);
-    $terpilih = $layanan[$slugTerpilih];
+    $terpilih = $layanan->first();
 @endphp
 
 <section class="bg-[#F2F7FD] py-10 lg:py-14">
@@ -41,9 +41,9 @@
             </div>
         @endif
 
-        <form method="POST" action="{{ route('pesanan.form.proses') }}" enctype="multipart/form-data" class="mt-8" id="form-pesanan">
+        <form method="POST" action="{{ route('pesanan.store') }}" enctype="multipart/form-data" class="mt-8" id="form-pesanan">
             @csrf
-            <input type="hidden" name="layanan" id="input-layanan" value="{{ $slugTerpilih }}">
+            <input type="hidden" name="layanan_id" id="input-layanan" value="">
 
             <div class="grid gap-6 lg:grid-cols-3">
                 {{-- Ringkasan layanan (sticky) --}}
@@ -54,15 +54,15 @@
                                 <h2 class="text-base font-bold text-[#1E293B]">Ringkasan Layanan</h2>
                             </div>
                             <div class="p-5">
-                                <x-shoe-thumb :slug="$slugTerpilih" class="aspect-[4/3] w-full" />
-                                <p class="mt-4 text-sm font-semibold text-[#1566AD]" id="ringkas-nama">{{ $terpilih['nama'] }}</p>
+                                <x-shoe-thumb class="aspect-[4/3] w-full" />
+                                <p class="mt-4 text-sm font-semibold text-[#1566AD]" id="ringkas-nama">{{ $terpilih['nama_layanan'] }}</p>
                                 <p class="mt-1 text-2xl font-bold text-[#1E293B]" id="ringkas-harga">{{ \App\Http\Controllers\PesananController::rupiah($terpilih['harga']) }}</p>
 
                                 <label class="mt-4 block text-xs font-medium text-slate-500">Ganti Layanan</label>
                                 <select id="pilih-layanan"
                                     class="mt-1.5 w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 shadow-sm transition focus:border-[#1E7BC8] focus:outline-none focus:ring-2 focus:ring-[#1E7BC8]/30">
-                                    @foreach($layanan as $slug => $item)
-                                        <option value="{{ $slug }}" data-harga="{{ $item['harga'] }}" @selected($slug === $slugTerpilih)>{{ $item['nama'] }} &mdash; {{ \App\Http\Controllers\PesananController::rupiah($item['harga']) }}</option>
+                                    @foreach($layanan as $item)
+                                        <option value="{{ $item->id }}" data-harga="{{ $item->harga }}" @selected($item->id === $terpilih['id'])>{{ $item->nama_layanan }} &mdash; {{ \App\Http\Controllers\PesananController::rupiah($item->harga) }}</option>
                                     @endforeach
                                 </select>
                             </div>
@@ -110,7 +110,7 @@
                         <div class="mt-5 space-y-5">
                             <div>
                                 <label class="mb-1.5 block text-sm font-medium text-slate-700">Jenis Layanan</label>
-                                <input type="text" id="detail-layanan" value="{{ $terpilih['nama'] }}" readonly
+                                <input type="text" id="detail-layanan" value="{{ $terpilih['nama_layanan'] }}" readonly
                                     class="block w-full cursor-not-allowed rounded-lg border border-slate-200 bg-[#F2F7FD] px-3.5 py-2.5 text-sm font-medium text-slate-600">
                             </div>
 

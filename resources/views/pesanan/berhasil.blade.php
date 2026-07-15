@@ -42,7 +42,7 @@
                 <div class="rounded-xl bg-[#F2F7FD] p-4 sm:min-w-[220px]">
                     <div class="flex items-center justify-between gap-6">
                         <span class="text-xs text-slate-500">Total Pembayaran</span>
-                        <span class="text-lg font-bold text-[#1E293B]">{{ $rp($pesanan['total']) }}</span>
+                        <span class="text-lg font-bold text-[#1E293B]">{{ $rp($pesanan->total_biaya) }}</span>
                     </div>
                     <div class="mt-3 flex items-start gap-2 rounded-lg bg-amber-50 p-2.5">
                         <x-icon name="clock" class="mt-0.5 h-4 w-4 shrink-0 text-amber-500" />

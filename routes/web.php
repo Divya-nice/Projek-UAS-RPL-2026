@@ -36,7 +36,7 @@ Route::post('/logout', [AuthController::class, 'logout'])
 
 /*
 |--------------------------------------------------------------------------
-| HALAMAN PELANGGAN (HARUS LOGIN)
+| HALAMAN PELANGGAN
 |--------------------------------------------------------------------------
 */
 
@@ -61,6 +61,17 @@ Route::middleware('auth')->controller(PesananController::class)->group(function 
     // Detail pesanan
     Route::get('/pesanan/{id}', 'show')
         ->name('pesanan.show');
+
+    // Pembayaran
+    Route::get('/pesanan/pembayaran', 'pembayaran')
+        ->name('pesanan.pembayaran');
+
+    Route::post('/pesanan/pembayaran', 'prosesPembayaran')
+        ->name('pesanan.pembayaran.proses');
+
+    // Berhasil
+    Route::get('/pesanan/berhasil', 'berhasil')
+        ->name('pesanan.berhasil');
 
     // Riwayat
     Route::get('/riwayat', 'riwayat')

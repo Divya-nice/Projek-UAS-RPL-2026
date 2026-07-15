@@ -85,7 +85,7 @@
                             <div class="flex justify-between"><dt class="text-slate-500">Ongkos Jemput</dt><dd class="font-medium text-slate-700">{{ $rp($pesanan['ongkos_jemput']) }}</dd></div>
                             <div class="mt-2 flex justify-between border-t border-dashed border-slate-200 pt-3">
                                 <dt class="text-base font-bold text-[#1E293B]">Total</dt>
-                                <dd class="text-base font-bold text-[#1566AD]">{{ $rp($pesanan['total']) }}</dd>
+                                <dd class="text-base font-bold text-[#1566AD]">{{ $rp($pesanan->total_biaya)}}</dd>
                             </div>
                         </dl>
                     </div>
@@ -111,7 +111,7 @@
                         </div>
 
                         <button type="submit" class="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-[#2E8BD9] to-[#1566AD] px-6 py-3 text-sm font-semibold text-white shadow-md transition hover:opacity-95 focus:outline-none focus:ring-2 focus:ring-[#1E7BC8]/40 focus:ring-offset-2">
-                            Konfirmasi &amp; Bayar <x-icon name="arrow-right" class="h-4 w-4" />
+                            Lanjut ke Pembayaran <x-icon name="arrow-right" class="h-4 w-4" />
                         </button>
                         <a href="{{ route('pesanan.form') }}" class="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-6 py-2.5 text-sm font-semibold text-slate-600 transition hover:bg-slate-50">
                             <x-icon name="arrow-left" class="h-4 w-4" /> Ubah Pesanan
