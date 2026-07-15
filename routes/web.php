@@ -41,3 +41,14 @@ Route::controller(PesananController::class)->group(function () {
     Route::get('/riwayat', 'riwayat')->name('pesanan.riwayat');
     Route::get('/akun', 'akun')->name('pesanan.akun');
 });
+/*
+|--------------------------------------------------------------------------
+| Admin (UI only) — branch feature/dashboard-admin-ui
+| View-only routes; tidak menyentuh controller/model/migration/database.
+|--------------------------------------------------------------------------
+*/
+Route::prefix('admin')->group(function () {
+    Route::view('/dashboard', 'admin.dashboard')->name('admin.dashboard');
+    Route::view('/pesanan', 'admin.pesanan.index')->name('admin.pesanan');
+    Route::view('/pesanan/detail', 'admin.pesanan.detail')->name('admin.pesanan.detail');
+});
