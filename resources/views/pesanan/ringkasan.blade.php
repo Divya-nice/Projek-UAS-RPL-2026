@@ -10,7 +10,7 @@
 <section class="bg-[#F2F7FD] py-10 lg:py-14">
     <div class="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
         <h1 class="text-2xl font-bold text-[#1E293B] sm:text-3xl">Ringkasan Pesanan</h1>
-        <p class="mt-1.5 text-sm text-slate-500">Periksa kembali detail pesanan Anda sebelum menyelesaikan pembayaran.</p>
+        <p class="mt-1.5 text-sm text-slate-500">Periksa kembali detail pesanan Anda sebelum melanjutkan ke pembayaran.</p>
 
         <div class="mt-8">
             <x-step-indicator :current="3" />
@@ -75,67 +75,30 @@
                 </div>
             </div>
 
-            {{-- Rincian biaya + pembayaran --}}
+            {{-- Rincian biaya --}}
             <div class="lg:col-span-2">
                 <div class="sticky top-24 space-y-4">
                     <div class="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-100">
                         <h2 class="text-base font-bold text-[#1E293B]">Rincian Biaya</h2>
                         <dl class="mt-4 space-y-3 text-sm">
                             <div class="flex justify-between"><dt class="text-slate-500">Subtotal ({{ $pesanan['jumlah'] }}x)</dt><dd class="font-medium text-slate-700">{{ $rp($pesanan['subtotal']) }}</dd></div>
-                            <div class="flex justify-between"><dt class="text-slate-500">Ongkos Jemput</dt><dd class="font-medium text-slate-700">{{ $rp($pesanan['ongkos_jemput']) }}</dd></div>
+                            <div class="flex justify-between"><dt class="text-slate-500">Ongkos Jemput</dt><dd class="font-medium text-slate-700">{{ $rp($pesanan['ongkos_jemput'] ?? 0) }}</dd></div>
                             <div class="mt-2 flex justify-between border-t border-dashed border-slate-200 pt-3">
                                 <dt class="text-base font-bold text-[#1E293B]">Total</dt>
-                                <dd class="text-base font-bold text-[#1566AD]">{{ $rp($pesanan['total']) }}</dd>
+                                <dd class="text-base font-bold text-[#1566AD]">{{ $rp($pesanan['total'] ?? $pesanan['subtotal']) }}</dd>
                             </div>
                         </dl>
-                    </div>
 
-                    <form method="POST" action="{{ route('pesanan.konfirmasi') }}" class="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-100">
-                        @csrf
-                        <h2 class="text-base font-bold text-[#1E293B]">Metode Pembayaran</h2>
-                        <div class="mt-4 space-y-3">
-                            <label class="bayar-opsi flex cursor-pointer items-start gap-3 rounded-xl border-2 border-[#1E7BC8] bg-[#F2F7FD] p-4 transition">
-                                <input type="radio" name="metode_bayar" value="transfer" class="mt-0.5 accent-[#1E7BC8]" checked>
-                                <div>
-                                    <p class="text-sm font-semibold text-[#1E293B]">Transfer Bank</p>
-                                    <p class="mt-0.5 text-xs text-slate-500">{{ $rekening['bank'] ?? 'BCA' }} {{ $rekening['nomor'] ?? '' }} a.n. {{ $rekening['nama'] ?? '' }}</p>
-                                </div>
-                            </label>
-                            <label class="bayar-opsi flex cursor-pointer items-start gap-3 rounded-xl border-2 border-slate-200 bg-white p-4 transition">
-                                <input type="radio" name="metode_bayar" value="cash" class="mt-0.5 accent-[#1E7BC8]">
-                                <div>
-                                    <p class="text-sm font-semibold text-[#1E293B]">Tunai (COD)</p>
-                                    <p class="mt-0.5 text-xs text-slate-500">Bayar saat sepatu dijemput atau diantar.</p>
-                                </div>
-                            </label>
-                        </div>
-
-                        <button type="submit" class="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-[#2E8BD9] to-[#1566AD] px-6 py-3 text-sm font-semibold text-white shadow-md transition hover:opacity-95 focus:outline-none focus:ring-2 focus:ring-[#1E7BC8]/40 focus:ring-offset-2">
+                        <a href="{{ route('pesanan.pembayaran') }}" class="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-[#2E8BD9] to-[#1566AD] px-6 py-3 text-sm font-semibold text-white shadow-md transition hover:opacity-95 focus:outline-none focus:ring-2 focus:ring-[#1E7BC8]/40 focus:ring-offset-2">
                             Lanjut ke Pembayaran <x-icon name="arrow-right" class="h-4 w-4" />
-                        </button>
-                        <a href="{{ route('pesanan.form') }}" class="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-6 py-2.5 text-sm font-semibold text-slate-600 transition hover:bg-slate-50">
-                            <x-icon name="arrow-left" class="h-4 w-4" /> Ubah Pesanan
                         </a>
-                    </form>
+                        <a href="{{ route('pesanan.pengantaran') }}" class="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-6 py-2.5 text-sm font-semibold text-slate-600 transition hover:bg-slate-50">
+                            <x-icon name="arrow-left" class="h-4 w-4" /> Kembali
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </section>
-
-@push('scripts')
-<script>
-    document.querySelectorAll('.bayar-opsi input').forEach((radio) => {
-        radio.addEventListener('change', () => {
-            document.querySelectorAll('.bayar-opsi').forEach((label) => {
-                const dipilih = label.querySelector('input').checked;
-                label.classList.toggle('border-[#1E7BC8]', dipilih);
-                label.classList.toggle('bg-[#F2F7FD]', dipilih);
-                label.classList.toggle('border-slate-200', ! dipilih);
-                label.classList.toggle('bg-white', ! dipilih);
-            });
-        });
-    });
-</script>
-@endpush
 @endsection

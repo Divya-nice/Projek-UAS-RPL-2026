@@ -1,8 +1,12 @@
 @extends('layouts.app')
 
-@section('title', 'Upload Bukti Pembayaran — Cuci Sepatu')
+@section('title', 'Pembayaran — Cuci Sepatu')
 
 @section('content')
+@php
+    $rp = fn ($n) => \App\Http\Controllers\PesananController::rupiah($n);
+@endphp
+
 <section class="bg-[#F2F7FD] py-10 lg:py-14">
     <div class="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
 
@@ -10,38 +14,68 @@
         <nav class="mb-4 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-slate-400">
             <a href="{{ route('pesanan.beranda') }}" class="hover:text-[#1E7BC8]">Beranda</a>
             <span>&rsaquo;</span>
-            <a href="{{ route('pesanan.katalog') }}" class="hover:text-[#1E7BC8]">Pesan Layanan</a>
-            <span>&rsaquo;</span>
             <a href="{{ route('pesanan.ringkasan') }}" class="hover:text-[#1E7BC8]">Ringkasan Pesanan</a>
             <span>&rsaquo;</span>
-            <span class="font-semibold text-[#1566AD]">Upload Bukti Pembayaran</span>
+            <span class="font-semibold text-[#1566AD]">Pembayaran</span>
         </nav>
 
-        <h1 class="text-2xl font-bold text-[#1E293B] sm:text-3xl">Upload Bukti Pembayaran</h1>
-        <p class="mt-1.5 text-sm text-slate-500">Lengkapi data pesanan Anda sebelum melanjutkan ke proses pengantaran.</p>
+        <h1 class="text-2xl font-bold text-[#1E293B] sm:text-3xl">Pembayaran</h1>
+        <p class="mt-1.5 text-sm text-slate-500">Pilih metode pembayaran lalu selesaikan pesanan Anda.</p>
 
         <div class="mt-8">
             <x-step-indicator :current="4" />
         </div>
 
+        @if($errors->any())
+            <div class="mt-6 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-600">
+                <p class="font-semibold">Mohon periksa kembali isian Anda:</p>
+                <ul class="mt-1.5 list-inside list-disc space-y-0.5">
+                    @foreach($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
+
         <form method="POST" action="{{ route('pesanan.pembayaran.proses') }}" enctype="multipart/form-data"
               class="mt-8 grid gap-6 lg:grid-cols-3">
             @csrf
 
-            {{-- Kiri: unggah berkas --}}
-            <div class="lg:col-span-2">
+            {{-- Kiri --}}
+            <div class="space-y-6 lg:col-span-2">
+                {{-- Metode Pembayaran --}}
                 <div class="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-100">
+                    <h2 class="text-base font-bold text-[#1E293B]">Metode Pembayaran</h2>
+                    <div class="mt-4 space-y-3">
+                        <label class="bayar-opsi flex cursor-pointer items-start gap-3 rounded-xl border-2 border-slate-200 bg-white p-4 transition">
+                            <input type="radio" name="metode_bayar" value="transfer" class="mt-0.5 accent-[#1E7BC8]" @checked(old('metode_bayar', 'transfer') === 'transfer')>
+                            <div>
+                                <p class="text-sm font-semibold text-[#1E293B]">Transfer Bank</p>
+                                <p class="mt-0.5 text-xs text-slate-500">{{ $rekening['bank'] ?? 'BCA' }} {{ $rekening['nomor'] ?? '' }} a.n. {{ $rekening['nama'] ?? '' }}</p>
+                            </div>
+                        </label>
+                        <label class="bayar-opsi flex cursor-pointer items-start gap-3 rounded-xl border-2 border-slate-200 bg-white p-4 transition">
+                            <input type="radio" name="metode_bayar" value="cash" class="mt-0.5 accent-[#1E7BC8]" @checked(old('metode_bayar') === 'cash')>
+                            <div>
+                                <p class="text-sm font-semibold text-[#1E293B]">Tunai (COD)</p>
+                                <p class="mt-0.5 text-xs text-slate-500">Bayar saat sepatu dijemput atau diantar.</p>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                {{-- Unggah Berkas (khusus Transfer) --}}
+                <div id="kartu-bukti" class="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-100">
                     <div class="flex items-center gap-3">
                         <span class="flex h-10 w-10 items-center justify-center rounded-xl bg-[#EAF3FC] text-[#1E7BC8]">
                             <x-icon name="upload" class="h-5 w-5" />
                         </span>
                         <div>
-                            <h2 class="text-base font-bold text-[#1E293B]">Unggah Berkas</h2>
+                            <h2 class="text-base font-bold text-[#1E293B]">Unggah Bukti Transfer</h2>
                             <p class="text-xs text-slate-500">Lampirkan foto atau screenshot bukti transfer</p>
                         </div>
                     </div>
 
-                    {{-- Dropzone --}}
                     <label for="bukti" id="dropzone"
                            class="mt-5 flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50/60 px-6 py-10 text-center transition hover:border-[#1E7BC8] hover:bg-[#F2F7FD]">
                         <x-icon name="upload" class="h-8 w-8 text-slate-300" />
@@ -49,10 +83,9 @@
                             <span class="font-semibold text-[#1E7BC8]">Klik untuk upload</span> bukti pembayaran atau drag &amp; drop file di sini.
                         </p>
                         <p class="mt-1 text-xs text-slate-400">JPG, PNG, PDF | Maksimal 5 MB</p>
-                        <input id="bukti" name="bukti" type="file" accept=".jpg,.jpeg,.png,.pdf" class="hidden" required>
+                        <input id="bukti" name="bukti" type="file" accept=".jpg,.jpeg,.png,.pdf" class="hidden">
                     </label>
 
-                    {{-- Preview berkas terpilih --}}
                     <div id="filePreview" class="mt-4 hidden items-center gap-3 rounded-xl border border-slate-100 bg-white p-3 shadow-sm">
                         <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#EAF3FC] text-[#1E7BC8]">
                             <x-icon name="clipboard" class="h-5 w-5" />
@@ -74,16 +107,28 @@
                 </div>
             </div>
 
-            {{-- Kanan: info + tips --}}
+            {{-- Kanan --}}
             <div class="space-y-5">
+                <div class="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-100">
+                    <h2 class="text-base font-bold text-[#1E293B]">Rincian Biaya</h2>
+                    <dl class="mt-4 space-y-3 text-sm">
+                        <div class="flex justify-between"><dt class="text-slate-500">Subtotal</dt><dd class="font-medium text-slate-700">{{ $rp($pesanan['subtotal'] ?? 0) }}</dd></div>
+                        <div class="flex justify-between"><dt class="text-slate-500">Ongkos Jemput</dt><dd class="font-medium text-slate-700">{{ $rp($pesanan['ongkos_jemput'] ?? 0) }}</dd></div>
+                        <div class="mt-2 flex justify-between border-t border-dashed border-slate-200 pt-3">
+                            <dt class="text-base font-bold text-[#1E293B]">Total</dt>
+                            <dd class="text-base font-bold text-[#1566AD]">{{ $rp($pesanan['total'] ?? $pesanan['subtotal'] ?? 0) }}</dd>
+                        </div>
+                    </dl>
+                </div>
+
                 <div class="rounded-2xl bg-[#1E7BC8] p-5 text-sm text-white shadow-sm">
                     <div class="flex gap-3">
                         <x-icon name="check-circle" class="h-5 w-5 shrink-0" />
-                        <p class="leading-relaxed text-white/95">Setelah bukti pembayaran dikirim, admin akan melakukan verifikasi. Status pesanan akan berubah setelah pembayaran berhasil diverifikasi.</p>
+                        <p class="leading-relaxed text-white/95">Setelah pesanan dikirim, admin akan memverifikasi pembayaran Anda. Status pesanan akan diperbarui setelah pembayaran berhasil diverifikasi.</p>
                     </div>
                 </div>
 
-                <div class="rounded-2xl border border-amber-200 bg-amber-50 p-5 shadow-sm">
+                <div id="tips-transfer" class="rounded-2xl border border-amber-200 bg-amber-50 p-5 shadow-sm">
                     <div class="flex items-center gap-2">
                         <span class="text-base">💡</span>
                         <h3 class="text-sm font-bold text-[#1E293B]">Tips Pembayaran</h3>
@@ -97,13 +142,13 @@
                 </div>
             </div>
 
-            {{-- Tombol bawah --}}
+            {{-- Tombol --}}
             <div class="mt-2 flex items-center justify-between gap-4 lg:col-span-3">
                 <a href="{{ route('pesanan.ringkasan') }}" class="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-6 py-2.5 text-sm font-semibold text-slate-600 transition hover:bg-slate-50">
                     <x-icon name="arrow-left" class="h-4 w-4" /> Kembali
                 </a>
                 <button type="submit" class="inline-flex items-center gap-2 rounded-lg bg-[#0F2A4A] px-6 py-3 text-sm font-semibold text-white shadow-md transition hover:bg-[#1566AD] focus:outline-none focus:ring-2 focus:ring-[#1E7BC8]/40 focus:ring-offset-2">
-                    Kirim Bukti Pembayaran <x-icon name="arrow-right" class="h-4 w-4" />
+                    Selesaikan Pesanan <x-icon name="arrow-right" class="h-4 w-4" />
                 </button>
             </div>
         </form>
@@ -119,6 +164,8 @@
         var sizeEl = document.getElementById('fileSize');
         var removeBtn = document.getElementById('fileRemove');
         var dropzone = document.getElementById('dropzone');
+        var kartuBukti = document.getElementById('kartu-bukti');
+        var tipsTransfer = document.getElementById('tips-transfer');
 
         function formatSize(bytes) {
             if (bytes < 1024) return bytes + ' B';
@@ -133,16 +180,38 @@
             preview.classList.add('flex');
         }
 
+        function syncBayar() {
+            var metode = document.querySelector('input[name=metode_bayar]:checked').value;
+            document.querySelectorAll('.bayar-opsi').forEach(function (label) {
+                var dipilih = label.querySelector('input').checked;
+                label.classList.toggle('border-[#1E7BC8]', dipilih);
+                label.classList.toggle('bg-[#F2F7FD]', dipilih);
+                label.classList.toggle('border-slate-200', ! dipilih);
+                label.classList.toggle('bg-white', ! dipilih);
+            });
+            var transfer = metode === 'transfer';
+            kartuBukti.style.display = transfer ? '' : 'none';
+            if (tipsTransfer) { tipsTransfer.style.display = transfer ? '' : 'none'; }
+            input.required = transfer;
+            if (! transfer) {
+                input.value = '';
+                preview.classList.add('hidden');
+                preview.classList.remove('flex');
+            }
+        }
+
+        document.querySelectorAll('input[name=metode_bayar]').forEach(function (r) {
+            r.addEventListener('change', syncBayar);
+        });
+
         input.addEventListener('change', function () {
             if (input.files && input.files[0]) showFile(input.files[0]);
         });
-
         removeBtn.addEventListener('click', function () {
             input.value = '';
             preview.classList.add('hidden');
             preview.classList.remove('flex');
         });
-
         ['dragover', 'dragenter'].forEach(function (ev) {
             dropzone.addEventListener(ev, function (e) {
                 e.preventDefault();
@@ -161,6 +230,8 @@
                 showFile(e.dataTransfer.files[0]);
             }
         });
+
+        syncBayar();
     })();
 </script>
 @endpush
