@@ -171,7 +171,54 @@ class PesananController extends Controller
         $request->session()->forget('pesanan');
         $request->session()->put('pesanan_sukses', $pesanan);
 
+        if (($pesanan['metode_bayar'] ?? null) === 'transfer') {
+            return redirect()->route('pesanan.pembayaran');
+        }
+
         return redirect()->route('pesanan.berhasil');
+    }
+
+    /**
+     * Halaman 4 - Upload Bukti Pembayaran (khusus Transfer Bank).
+     */
+    public function pembayaran(Request $request)
+    {
+        $pesanan = $request->session()->get('pesanan_sukses');
+
+        if (! $pesanan || ($pesanan['metode_bayar'] ?? null) !== 'transfer') {
+            return redirect()->route('pesanan.beranda');
+        }
+
+        return view('pesanan.pembayaran', [
+            'pesanan'  => $pesanan,
+            'rekening' => config('layanan.kontak.rekening', []),
+        ]);
+    }
+
+    /**
+     * Proses upload bukti pembayaran lalu lanjut ke halaman Berhasil.
+     */
+    public function prosesPembayaran(Request $request)
+    {
+        $pesanan = $request->session()->get('pesanan_sukses');
+
+        if (! $pesanan) {
+            return redirect()->route('pesanan.beranda');
+        }
+
+        $request->validate([
+            'bukti' => ['required', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:5120'],
+        ], [
+            'bukti.required' => 'Silakan unggah bukti pembayaran terlebih dahulu.',
+            'bukti.mimes'    => 'Format berkas harus JPG, PNG, atau PDF.',
+            'bukti.max'      => 'Ukuran berkas maksimal 5 MB.',
+        ]);
+
+        $pesanan['bukti_pembayaran'] = $request->file('bukti')->store('bukti-pembayaran', 'public');
+        $request->session()->put('pesanan_sukses', $pesanan);
+
+        return redirect()->route('pesanan.berhasil')
+            ->with('sukses', 'Bukti pembayaran berhasil dikirim. Menunggu verifikasi admin.');
     }
 
     /**
