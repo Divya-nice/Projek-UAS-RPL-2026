@@ -18,6 +18,14 @@ class User extends Authenticatable
     use HasFactory, Notifiable;
 
     /**
+     * Relasi ke pesanan
+     */
+    public function pesanans()
+    {
+        return $this->hasMany(Pesanan::class);
+    }
+
+    /**
      * Get the attributes that should be cast.
      *
      * @return array<string, string>

@@ -2,40 +2,86 @@
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\PesananController;
+use App\Http\Controllers\LayananController;
 use Illuminate\Support\Facades\Route;
 
-// Halaman utama menampilkan Beranda Pelanggan
-Route::get('/', [PesananController::class, 'beranda'])->name('pesanan.beranda');
+/*
+|--------------------------------------------------------------------------
+| AUTH
+|--------------------------------------------------------------------------
+*/
 
-// Halaman Login
-Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
+// Halaman utama -> arahkan ke login
+Route::get('/', function () {
+    return redirect()->route('login');
+});
 
-// Proses Login
+// Login
+Route::get('/login', [AuthController::class, 'showLogin'])
+    ->name('login');
+
 Route::post('/login', [AuthController::class, 'login']);
 
-// Halaman Register
-Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
+// Register
+Route::get('/register', [AuthController::class, 'showRegister'])
+    ->name('register');
 
-// Proses Register
 Route::post('/register', [AuthController::class, 'register']);
 
 // Logout
-Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+Route::post('/logout', [AuthController::class, 'logout'])
+    ->middleware('auth')
+    ->name('logout');
 
-// Halaman setelah login
-Route::get('/dashboard', function () {
-    return view('dashboard');
-})->middleware('auth');
 
-// Alur pemesanan
-Route::controller(PesananController::class)->group(function () {
-    Route::get('/beranda', 'beranda')->name('pesanan.beranda.alt');
-    Route::get('/layanan', 'katalog')->name('pesanan.katalog');
-    Route::get('/pesanan/buat', 'form')->name('pesanan.form');
-    Route::post('/pesanan/buat', 'prosesForm')->name('pesanan.form.proses');
-    Route::get('/pesanan/ringkasan', 'ringkasan')->name('pesanan.ringkasan');
-    Route::post('/pesanan/konfirmasi', 'konfirmasi')->name('pesanan.konfirmasi');
-    Route::get('/pesanan/berhasil', 'berhasil')->name('pesanan.berhasil');
-    Route::get('/riwayat', 'riwayat')->name('pesanan.riwayat');
-    Route::get('/akun', 'akun')->name('pesanan.akun');
+/*
+|--------------------------------------------------------------------------
+| HALAMAN PELANGGAN (HARUS LOGIN)
+|--------------------------------------------------------------------------
+*/
+
+Route::middleware('auth')->controller(PesananController::class)->group(function () {
+
+    // Beranda
+    Route::get('/beranda', 'beranda')
+        ->name('pesanan.beranda');
+
+    // Katalog layanan
+    Route::get('/layanan', 'katalog')
+        ->name('pesanan.katalog');
+
+    // Form pemesanan
+    Route::get('/pesanan/buat', 'create')
+        ->name('pesanan.form');
+
+    // Simpan pesanan
+    Route::post('/pesanan', 'store')
+        ->name('pesanan.store');
+
+    // Detail pesanan
+    Route::get('/pesanan/{id}', 'show')
+        ->name('pesanan.show');
+
+    // Riwayat
+    Route::get('/riwayat', 'riwayat')
+        ->name('pesanan.riwayat');
+
+    // Akun
+    Route::get('/akun', 'akun')
+        ->name('pesanan.akun');
 });
+
+
+/*
+|--------------------------------------------------------------------------
+| BACKEND
+|--------------------------------------------------------------------------
+*/
+
+// Data layanan
+Route::get('/layanan-data', [LayananController::class, 'index'])
+    ->name('layanan.index');
+
+// Semua pesanan (admin)
+Route::get('/pesanan', [PesananController::class, 'index'])
+    ->name('pesanan.index');
