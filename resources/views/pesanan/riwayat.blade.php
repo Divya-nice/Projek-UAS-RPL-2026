@@ -41,8 +41,10 @@
                                 <p class="text-xs text-slate-400">Jumlah Sepatu</p>
                                 <p class="mt-0.5 text-sm font-medium text-[#1E293B]">{{ $item['jumlah'] }} Pasang</p>
                             </div>
-                            <div class="sm:text-right">
-                                <a href="{{ route('pesanan.katalog') }}" class="inline-flex items-center gap-1.5 text-sm font-semibold text-[#1E7BC8] hover:underline">Pesan Lagi <x-icon name="arrow-right" class="h-4 w-4" /></a>
+                            <div class="flex items-start sm:justify-end">
+                                @if(in_array($item['status'], ['Selesai', 'Diproses']))
+                                    <a href="{{ route('pesanan.nota', ['kode' => ltrim($item['kode'], '#')]) }}" class="inline-flex items-center gap-1.5 text-sm font-semibold text-[#1E7BC8] hover:underline"><x-icon name="clipboard" class="h-4 w-4" /> Lihat Nota</a>
+                                @endif
                             </div>
                         </div>
                     </div>
