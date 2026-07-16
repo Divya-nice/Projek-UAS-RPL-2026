@@ -163,67 +163,13 @@
                         <ul id="daftar-foto" class="mt-4 space-y-2"></ul>
                     </div>
 
-                    {{-- Metode Pengantaran --}}
-                    <div class="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-100">
-                        <h2 class="text-base font-bold text-[#1E293B]">Metode Pengantaran</h2>
-                        <p class="mt-1 text-sm text-slate-500">Pilih cara pengantaran yang sesuai untuk Anda.</p>
-
-                        <div class="mt-5 grid gap-4 sm:grid-cols-2">
-                            <label class="metode-opsi relative cursor-pointer rounded-xl border-2 border-[#1E7BC8] bg-[#F2F7FD] p-4 transition">
-                                <input type="radio" name="metode" value="jemput" class="peer sr-only" checked>
-                                <div class="flex items-start gap-3">
-                                    <x-icon name="truck" class="h-6 w-6 text-[#1E7BC8]" />
-                                    <div>
-                                        <p class="text-sm font-semibold text-[#1E293B]">Dijemput oleh Pemilik</p>
-                                        <p class="mt-0.5 text-xs text-slate-500">Kami akan menjemput sepatu Anda di alamat yang telah ditentukan.</p>
-                                    </div>
-                                </div>
-                                <span class="metode-cek absolute right-3 top-3 flex h-5 w-5 items-center justify-center rounded-full bg-[#1E7BC8] text-white"><x-icon name="check" class="h-3 w-3" /></span>
-                            </label>
-
-                            <label class="metode-opsi relative cursor-pointer rounded-xl border-2 border-slate-200 bg-white p-4 transition">
-                                <input type="radio" name="metode" value="antar" class="peer sr-only">
-                                <div class="flex items-start gap-3">
-                                    <x-icon name="building" class="h-6 w-6 text-slate-400" />
-                                    <div>
-                                        <p class="text-sm font-semibold text-[#1E293B]">Antar Sendiri</p>
-                                        <p class="mt-0.5 text-xs text-slate-500">Anda mengantarkan sepatu ke lokasi usaha sesuai jam operasional.</p>
-                                    </div>
-                                </div>
-                                <span class="metode-cek absolute right-3 top-3 hidden h-5 w-5 items-center justify-center rounded-full bg-[#1E7BC8] text-white"><x-icon name="check" class="h-3 w-3" /></span>
-                            </label>
-                        </div>
-
-                        {{-- Detail penjemputan --}}
-                        <div id="detail-jemput" class="mt-5 space-y-4 rounded-xl bg-[#F2F7FD] p-4">
-                            <div>
-                                <label for="kecamatan" class="mb-1.5 block text-sm font-medium text-slate-700">Kecamatan</label>
-                                <select id="kecamatan" name="kecamatan"
-                                    class="block w-full rounded-lg border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-700 shadow-sm transition focus:border-[#1E7BC8] focus:outline-none focus:ring-2 focus:ring-[#1E7BC8]/30">
-                                    @foreach($ongkos as $nama => $biaya)
-                                        <option value="{{ $nama }}" data-ongkir="{{ $biaya }}" @selected(old('kecamatan') === $nama)>{{ $nama }} ({{ \App\Http\Controllers\PesananController::rupiah($biaya) }})</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                            <div>
-                                <label for="alamat_jemput" class="mb-1.5 block text-sm font-medium text-slate-700">Alamat Penjemputan</label>
-                                <textarea id="alamat_jemput" name="alamat_jemput" rows="2" placeholder="Jl. Ahmad Yani No. 123, dekat Masjid Mujahidin"
-                                    class="block w-full rounded-lg border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-700 placeholder-slate-400 shadow-sm transition focus:border-[#1E7BC8] focus:outline-none focus:ring-2 focus:ring-[#1E7BC8]/30">{{ old('alamat_jemput') }}</textarea>
-                            </div>
-                            <div class="flex items-center justify-between rounded-lg bg-white px-4 py-3 text-sm shadow-sm">
-                                <span class="font-medium text-slate-600">Estimasi Ongkos Jemput</span>
-                                <span class="font-bold text-[#1566AD]" id="label-ongkir">Rp0</span>
-                            </div>
-                        </div>
-                    </div>
-
                     {{-- Aksi --}}
                     <div class="flex flex-col-reverse items-center justify-between gap-3 sm:flex-row">
                         <a href="{{ route('pesanan.katalog') }}" class="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-6 py-3 text-sm font-semibold text-slate-600 shadow-sm transition hover:bg-slate-50 sm:w-auto">
                             <x-icon name="arrow-left" class="h-4 w-4" /> Kembali
                         </a>
                         <button type="submit" class="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-[#1566AD] to-[#0F2A4A] px-6 py-3 text-sm font-semibold text-white shadow-md transition hover:opacity-95 focus:outline-none focus:ring-2 focus:ring-[#1E7BC8]/40 focus:ring-offset-2 sm:w-auto">
-                            Lanjut ke Ringkasan <x-icon name="arrow-right" class="h-4 w-4" />
+                            Lanjut ke Pengantaran <x-icon name="arrow-right" class="h-4 w-4" />
                         </button>
                     </div>
                 </div>
@@ -283,33 +229,6 @@
             });
         });
 
-        const detailJemput = document.getElementById('detail-jemput');
-        const kecamatan    = document.getElementById('kecamatan');
-        const labelOngkir  = document.getElementById('label-ongkir');
-
-        function hitungOngkir() {
-            const opt = kecamatan.options[kecamatan.selectedIndex];
-            labelOngkir.textContent = rupiah(opt ? opt.dataset.ongkir : 0);
-        }
-
-        function syncMetode() {
-            const metode = document.querySelector('input[name=metode]:checked').value;
-            document.querySelectorAll('.metode-opsi').forEach((label) => {
-                const dipilih = label.querySelector('input').checked;
-                label.classList.toggle('border-[#1E7BC8]', dipilih);
-                label.classList.toggle('bg-[#F2F7FD]', dipilih);
-                label.classList.toggle('border-slate-200', ! dipilih);
-                label.classList.toggle('bg-white', ! dipilih);
-                const cek = label.querySelector('.metode-cek');
-                cek.classList.toggle('hidden', ! dipilih);
-                cek.classList.toggle('flex', dipilih);
-            });
-            detailJemput.style.display = metode === 'jemput' ? '' : 'none';
-            kecamatan.required = metode === 'jemput';
-        }
-
-        document.querySelectorAll('input[name=metode]').forEach((r) => r.addEventListener('change', syncMetode));
-        kecamatan.addEventListener('change', hitungOngkir);
 
         const inputFoto  = document.getElementById('foto');
         const daftarFoto = document.getElementById('daftar-foto');
@@ -328,8 +247,6 @@
 
         syncLayanan();
         renderUkuran();
-        syncMetode();
-        hitungOngkir();
     })();
 </script>
 @endpush
