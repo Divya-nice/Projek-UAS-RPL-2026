@@ -21,7 +21,7 @@ class PesananController extends Controller
      */
     public function beranda()
     {
-        $layanan = Layanan::all();
+        $layanan = Layanan::all(); 
 
         $populer = $layanan->take(4);
 
@@ -76,9 +76,17 @@ class PesananController extends Controller
     /**
      * Form pemesanan
      */
-    public function create()
+    public function create(Request $request)
 {
     $layanan = Layanan::all();
+    $slug = $request->get('layanan');
+    $layananDipilih = $layanan->first(function ($item) use ($slug) {
+    return \Illuminate\Support\Str::slug($item->nama_layanan) === $slug;
+});
+
+if (! $layananDipilih) {
+    $layananDipilih = $layanan->first();
+}
 
     $ongkos = [
         'Pontianak Kota' => 5000,
@@ -90,6 +98,7 @@ class PesananController extends Controller
 
     return view('pesanan.form', [
         'layanan' => $layanan,
+        'layananDipilih' => $layananDipilih,
         'ongkos' => $ongkos,
     ]);
 }

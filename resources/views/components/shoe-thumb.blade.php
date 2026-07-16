@@ -24,6 +24,7 @@
 @endphp
 
 <div class="relative overflow-hidden {{ $class }}">
+    
     @if($foto)
         <img src="{{ asset($foto) }}" alt="{{ $alt }}" class="h-full w-full {{ $objectFit }}" />
     @else
