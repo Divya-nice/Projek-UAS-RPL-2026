@@ -58,8 +58,10 @@
                                 <h2 class="text-base font-bold text-[#1E293B]">Ringkasan Layanan</h2>
                             </div>
                             <div class="p-5">
-                                <x-shoe-thumb :slug="\Illuminate\Support\Str::slug($terpilih['nama_layanan'])"
-                                class="aspect-[4/3] w-full"/>"
+
+                                    <x-shoe-thumb :slug="\Illuminate\Support\Str::slug($terpilih['nama_layanan'])"
+                                    class="aspect-[4/3] w-full"/>
+                                </div>
                                 <p class="mt-4 text-sm font-semibold text-[#1566AD]" id="ringkas-nama">{{ $terpilih['nama_layanan'] }}</p>
                                 <p class="mt-1 text-2xl font-bold text-[#1E293B]" id="ringkas-harga">{{ \App\Http\Controllers\PesananController::rupiah($terpilih['harga']) }}</p>
 
