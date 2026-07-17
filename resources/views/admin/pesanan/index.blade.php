@@ -6,7 +6,7 @@
 <div class="mx-auto max-w-6xl space-y-5">
 
     {{-- Judul --}}
-    <div>
+    <div class="border-b border-slate-200 pb-5">
         <h1 class="text-2xl font-bold text-slate-900 sm:text-3xl">Kelola Pesanan</h1>
         <p class="mt-1 text-slate-500">Kelola dan pantau semua pesanan pelanggan</p>
     </div>

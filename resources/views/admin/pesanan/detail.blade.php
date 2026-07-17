@@ -19,7 +19,7 @@
     </nav>
 
     {{-- Judul --}}
-    <div>
+    <div class="border-b border-slate-200 pb-5">
         <h1 class="text-2xl font-bold text-slate-900 sm:text-3xl">Detail Pesanan</h1>
         <p class="mt-1 text-slate-500">Kelola dan pantau semua pesanan pelanggan</p>
     </div>
@@ -116,7 +116,7 @@
                 <div class="flex items-center justify-between border-t border-slate-100 pt-3"><p class="text-slate-500">Subtotal Layanan</p><p class="text-slate-700">Rp30.000</p></div>
                 <div class="flex items-center justify-between"><p class="text-slate-500">Biaya Tambahan</p><p class="text-slate-700">Rp10.000</p></div>
                 <div class="flex items-center justify-between border-t border-slate-100 pt-3"><p class="font-semibold text-slate-700">Total Pembayaran</p><p class="text-lg font-bold text-[#1566AD]">Rp45.000</p></div>
-                <button type="button" class="mt-2 flex w-full items-center justify-center gap-2 rounded-xl bg-[#EAF3FC] py-2.5 text-sm font-semibold text-[#1566AD] hover:bg-[#dceaf8]">
+                <button type="button" data-bukti-open class="mt-2 flex w-full items-center justify-center gap-2 rounded-xl bg-[#EAF3FC] py-2.5 text-sm font-semibold text-[#1566AD] hover:bg-[#dceaf8]">
                     <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="1.7" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" /></svg>
                     Lihat Bukti Pembayaran
                 </button>
@@ -129,6 +129,8 @@
         <p class="{{ $cardTitle }}">Update Status Pesanan</p>
         <p class="-mt-2 mb-4 text-sm text-slate-500">Perbarui status pengerjaan pesanan secara real-time untuk pelanggan.</p>
 
+        <form action="{{ route('admin.pesanan.update') }}" method="POST">
+        @csrf
         <div class="rounded-xl bg-[#EAF3FC] p-4">
             <div class="flex flex-col gap-4 sm:flex-row sm:items-center">
                 <div class="flex-1">
@@ -159,12 +161,44 @@
                 <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="1.7" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" /></svg>
                 Kembali Ke Daftar
             </a>
-            <button type="button" class="inline-flex items-center justify-center gap-2 rounded-xl bg-[#1566AD] px-5 py-2.5 text-sm font-semibold text-white hover:bg-[#12599c]">
+            <button type="submit" class="inline-flex items-center justify-center gap-2 rounded-xl bg-[#1566AD] px-5 py-2.5 text-sm font-semibold text-white hover:bg-[#12599c]">
                 <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="1.7" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 3.75V16.5L12 14.25 7.5 16.5V3.75m9 0H18A2.25 2.25 0 0 1 20.25 6v12A2.25 2.25 0 0 1 18 20.25H6A2.25 2.25 0 0 1 3.75 18V6A2.25 2.25 0 0 1 6 3.75h1.5m9 0h-9" /></svg>
                 Simpan Perubahan Status
             </button>
         </div>
+        </form>
     </div>
 
 </div>
+
+{{-- Modal Bukti Pembayaran --}}
+<div id="modal-bukti" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-900/70 p-4">
+    <div class="relative w-full max-w-md rounded-2xl bg-white p-3 shadow-2xl">
+        <button type="button" data-bukti-close class="absolute -right-3 -top-3 flex h-9 w-9 items-center justify-center rounded-full bg-white text-slate-700 shadow-lg ring-1 ring-slate-200 hover:bg-slate-100">
+            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" /></svg>
+        </button>
+        <p class="mb-3 px-1 text-sm font-semibold text-slate-700">Bukti Pembayaran</p>
+        <div class="relative flex h-96 items-center justify-center overflow-hidden rounded-xl bg-slate-100">
+            <span class="px-6 text-center text-sm text-slate-400">Bukti pembayaran belum diunggah pelanggan.</span>
+            <img src="{{ asset('images/bukti-pembayaran.jpg') }}" alt="Bukti pembayaran pelanggan" class="absolute inset-0 h-full w-full bg-slate-100 object-contain" onerror="this.remove()" />
+        </div>
+    </div>
+</div>
+
+@push('scripts')
+<script>
+    (function () {
+        const modal = document.getElementById('modal-bukti');
+        if (!modal) return;
+        function open() { modal.classList.remove('hidden'); modal.classList.add('flex'); }
+        function close() { modal.classList.add('hidden'); modal.classList.remove('flex'); }
+        document.addEventListener('click', function (e) {
+            if (e.target.closest('[data-bukti-open]')) { e.preventDefault(); open(); return; }
+            if (e.target.closest('[data-bukti-close]') || e.target === modal) { close(); }
+        });
+        document.addEventListener('keydown', function (e) { if (e.key === 'Escape') close(); });
+    })();
+</script>
+@endpush
+
 @endsection

@@ -96,6 +96,64 @@ Route::post('/logout', function (Request $request) {
 */
 Route::prefix('admin')->group(function () {
     Route::view('/dashboard', 'admin.dashboard')->name('admin.dashboard');
+
+    // Login Admin (halaman terpisah dari login pelanggan)
+Route::view('/login', 'auth.login-admin')->name('admin.login');
+Route::post('/login', function (Request $request) {
+    $request->validate([
+        'email'    => ['required', 'email'],
+        'password' => ['required'],
+    ]);
+    // UI-only: langsung arahkan ke dashboard admin.
+    return redirect()->route('admin.dashboard');
+})->name('admin.login.submit');
+
+    // Kelola Pesanan
     Route::view('/pesanan', 'admin.pesanan.index')->name('admin.pesanan');
     Route::view('/pesanan/detail', 'admin.pesanan.detail')->name('admin.pesanan.detail');
+    Route::post('/pesanan/update-status', function () {
+        return back()->with('status', 'Status pesanan berhasil diperbarui.');
+    })->name('admin.pesanan.update');
+
+    // Kelola Layanan
+    Route::view('/layanan', 'admin.layanan.index')->name('admin.layanan');
+    Route::view('/layanan/tambah', 'admin.layanan.form', ['mode' => 'create'])->name('admin.layanan.create');
+    Route::view('/layanan/edit', 'admin.layanan.form', ['mode' => 'edit'])->name('admin.layanan.edit');
+    Route::post('/layanan', function () {
+        return redirect()->route('admin.layanan')->with('status', 'Layanan baru berhasil ditambahkan.');
+    })->name('admin.layanan.store');
+    Route::post('/layanan/update', function () {
+        return redirect()->route('admin.layanan')->with('status', 'Layanan berhasil diperbarui.');
+    })->name('admin.layanan.update');
+    Route::post('/layanan/hapus', function () {
+        return redirect()->route('admin.layanan')->with('status', 'Layanan berhasil dihapus.');
+    })->name('admin.layanan.destroy');
+
+    // Verifikasi Pembayaran
+    Route::view('/verifikasi', 'admin.verifikasi.index')->name('admin.verifikasi');
+    Route::view('/verifikasi/detail', 'admin.verifikasi.detail')->name('admin.verifikasi.detail');
+    Route::post('/verifikasi/terima', function () {
+        return redirect()->route('admin.verifikasi')->with('status', 'Pembayaran berhasil diverifikasi.');
+    })->name('admin.verifikasi.terima');
+    Route::post('/verifikasi/tolak', function () {
+        return redirect()->route('admin.verifikasi')->with('status', 'Pembayaran telah ditolak.');
+    })->name('admin.verifikasi.tolak');
+
+    // Laporan Pendapatan
+    Route::view('/laporan', 'admin.laporan.index')->name('admin.laporan');
+
+    // Edit Profil & Ubah Password
+    Route::view('/profil', 'admin.profil')->name('admin.profil');
+    Route::post('/profil', function () {
+        return back()->with('status', 'Profil berhasil diperbarui.');
+    })->name('admin.profil.update');
+    Route::view('/ubah-password', 'admin.password')->name('admin.password');
+    Route::post('/ubah-password', function () {
+        return back()->with('status', 'Password berhasil diubah.');
+    })->name('admin.password.update');
+
+    // Logout admin (UI only)
+    Route::get('/logout', function () {
+        return redirect('/');
+    })->name('admin.logout');
 });
