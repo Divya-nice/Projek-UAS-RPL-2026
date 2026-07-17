@@ -116,7 +116,7 @@
                     </div>
                 </div>
 
-                <div class="rounded-2xl bg-[#EAF3FC] p-6 ring-1 ring-[#D6E7F8]">
+                <div id="panel-instruksi" class="rounded-2xl bg-[#EAF3FC] p-6 ring-1 ring-[#D6E7F8]">
                     <h3 class="text-sm font-bold text-[#1566AD]">INSTRUKSI PENTING</h3>
                     <ul class="mt-4 space-y-3 text-xs leading-relaxed text-[#1566AD]/90">
                         <li class="flex gap-2.5"><x-icon name="check-circle" class="mt-0.5 h-4 w-4 shrink-0" /> <span>Transfer sesuai nominal hingga 3 digit terakhir.</span></li>
@@ -144,6 +144,7 @@
     (function () {
         var boxRekening = document.getElementById('box-rekening');
         var panelTransfer = document.getElementById('panel-transfer');
+        var panelInstruksi = document.getElementById('panel-instruksi');
 
         function sync() {
             var transfer = document.querySelector('input[name=metode_bayar]:checked');
@@ -155,6 +156,7 @@
             });
             boxRekening.classList.toggle('hidden', ! isTransfer);
             panelTransfer.classList.toggle('hidden', ! isTransfer);
+            if (panelInstruksi) panelInstruksi.classList.toggle('hidden', ! isTransfer);
         }
         document.querySelectorAll('input[name=metode_bayar]').forEach(function (r) {
             r.addEventListener('change', sync);
