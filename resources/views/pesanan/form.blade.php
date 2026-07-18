@@ -46,7 +46,7 @@ $terpilih = $layanan[$slugTerpilih];
 
         <form method="POST" action="{{ route('pesanan.form.proses') }}" enctype="multipart/form-data" class="mt-8" id="form-pesanan">
             @csrf
-            <input type="hidden" name="layanan_id" id="input-layanan" value="">
+            <input type="hidden" name="layanan" id="input-layanan" value="">
 
             <div class="grid gap-6 lg:grid-cols-3">
                 {{-- Ringkasan layanan (sticky) --}}

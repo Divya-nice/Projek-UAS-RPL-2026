@@ -548,16 +548,34 @@ class PesananController extends Controller
      * Halaman Akun.
      */
     public function akun()
-    {
-        $user = [
-            'nama'    => optional(auth()->user())->name ?? 'Nabila',
-            'email'   => optional(auth()->user())->email ?? 'Taehyung123@gmail.com',
-            'telepon' => '081234567890',
-            'alamat'  => 'Jl. Merdeka No. 123, Pontianak, Kalimantan Barat',
-        ];
+{
+    $user = auth()->user();
 
-        return view('pesanan.akun', [
-            'user' => $user,
-        ]);
-    }
+    return view('pesanan.akun', [
+        'user' => [
+            'nama'     => $user->name,
+            'email'    => $user->email,
+            'telepon'  => $user->phone,
+            'alamat'   => '',
+        ],
+    ]);
 }
+public function updateAkun(Request $request)
+{
+    $data = $request->validate([
+        'nama'     => 'required|string|max:100',
+        'email'    => 'required|email|max:100',
+        'telepon'  => 'required|string|max:20',
+    ]);
+
+    $user = auth()->user();
+
+    $user->name  = $data['nama'];
+    $user->email = $data['email'];
+    $user->phone = $data['telepon'];
+
+    $user->save();
+
+    return redirect()->route('pesanan.akun')
+        ->with('success', 'Profil berhasil diperbarui.');
+}}
