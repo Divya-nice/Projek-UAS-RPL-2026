@@ -31,6 +31,11 @@ Route::controller(PesananController::class)->group(function () {
     Route::get('/pesanan/pembayaran', 'pembayaran')->name('pesanan.pembayaran');
     Route::post('/pesanan/pembayaran', 'prosesPembayaran')->name('pesanan.pembayaran.proses');
     Route::get('/pesanan/berhasil', 'berhasil')->name('pesanan.berhasil');
+    Route::get('/pesanan/upload-berhasil', 'buktiBerhasil')->name('pesanan.bukti.berhasil');
+    Route::get('/pesanan/{kode}/bayar', 'bayar')->name('pesanan.bayar');
+    Route::get('/pesanan/{kode}/bukti', 'bukti')->name('pesanan.bukti');
+    Route::post('/pesanan/{kode}/bukti', 'prosesBukti')->name('pesanan.bukti.proses');
+    Route::post('/pesanan/{kode}/batalkan', 'batalkan')->name('pesanan.batalkan');
     Route::get('/riwayat', 'riwayat')->name('pesanan.riwayat');
     Route::get('/riwayat/nota/{kode}', 'nota')->name('pesanan.nota');
     Route::get('/akun', 'akun')->name('pesanan.akun');
