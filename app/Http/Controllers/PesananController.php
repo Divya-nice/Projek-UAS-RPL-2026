@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Storage;
 
 class PesananController extends Controller
 {
@@ -557,22 +558,40 @@ class PesananController extends Controller
             'email'    => $user->email,
             'telepon'  => $user->phone,
             'alamat'   => '',
+            'foto'     => $user->foto,
         ],
     ]);
 }
 public function updateAkun(Request $request)
 {
+
     $data = $request->validate([
         'nama'     => 'required|string|max:100',
         'email'    => 'required|email|max:100',
         'telepon'  => 'required|string|max:20',
+        'foto'     => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
     ]);
 
     $user = auth()->user();
 
-    $user->name  = $data['nama'];
+    $user->name = $data['nama'];
     $user->email = $data['email'];
     $user->phone = $data['telepon'];
+
+    if ($request->hasFile('foto')) {
+
+        // Hapus foto lama jika ada
+        if ($user->foto && Storage::disk('public')->exists($user->foto)) {
+            Storage::disk('public')->delete($user->foto);
+        }
+
+        // Simpan foto baru
+        $user->foto = $request->file('foto')->store('foto-profil', 'public');
+        $path = $request->file('foto')->store('foto-profil', 'public');
+
+$user->foto = $path;
+$user->save();
+    }
 
     $user->save();
 

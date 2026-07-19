@@ -23,7 +23,7 @@
     $objectFit = $fit === 'contain' ? 'object-contain' : 'object-cover';
 @endphp
 
-<div class="relative overflow-hidden {{ $class }}">
+<div class="relative h-full w-full overflow-hidden {{ $class }}">
     
     @if($foto)
         <img src="{{ asset($foto) }}" alt="{{ $alt }}" class="h-full w-full {{ $objectFit }}" />

@@ -7,7 +7,6 @@
 
 <div class="group flex h-full flex-col overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-100 transition duration-300 hover:-translate-y-1 hover:shadow-xl">
     <div class="h-40 shrink-0 overflow-hidden">
-        <p class="text-red-500">{{ $slug }}</p>
 
 <x-shoe-thumb
     :slug="$slug"
