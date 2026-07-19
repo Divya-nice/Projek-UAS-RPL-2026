@@ -101,11 +101,6 @@
                     <p>Halaman ini hanya dapat diakses oleh pemilik usaha (Admin). Pastikan kredensial Anda aman.</p>
                 </div>
             </div>
-
-            <p class="mt-8 text-center text-sm text-slate-500">
-                Login sebagai pelanggan?
-                <a href="{{ route('login') }}" class="font-semibold text-[#1E7BC8] hover:underline">Masuk di sini</a>
-            </p>
         </div>
     </div>
 
