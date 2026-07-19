@@ -548,3 +548,4 @@ class PesananController extends Controller
 
         $request->session()->put('pesanan_list', $list);
     }
+}
