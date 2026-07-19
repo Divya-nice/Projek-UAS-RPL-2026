@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Storage;
 
 class PesananController extends Controller
 {
@@ -18,7 +19,7 @@ class PesananController extends Controller
     }
 
     /**
-     * Format angka menjadi Rupiah (mis. 35000 -> "Rp35.000").
+     * Format angka menjadi Rupiah.
      */
     public static function rupiah(int|float $nilai): string
     {
@@ -26,15 +27,19 @@ class PesananController extends Controller
     }
 
     /**
-     * Halaman 1 - Beranda Pelanggan.
+     * Halaman Beranda.
      */
     public function beranda()
     {
         $semua = $this->layanan();
 
-        // Layanan populer yang ditonjolkan di beranda.
         $populer = collect($semua)
-            ->only(['deep-cleaning-regular', 'one-day-service', 'repaint', 'leather-care'])
+            ->only([
+                'deep-cleaning-regular',
+                'one-day-service',
+                'repaint',
+                'leather-care'
+            ])
             ->all();
 
         return view('pesanan.beranda', [
@@ -46,7 +51,7 @@ class PesananController extends Controller
     }
 
     /**
-     * Halaman 2 - Katalog Layanan.
+     * Halaman Katalog.
      */
     public function katalog()
     {
@@ -56,13 +61,13 @@ class PesananController extends Controller
     }
 
     /**
-     * Halaman 3 - Form Pemesanan (Step 1: Data Pesanan).
-     * Layanan dapat dipilih lebih dulu lewat query string ?layanan=slug.
+     * Form Pemesanan (Step 1).
+     * Layanan dapat dipilih melalui query ?layanan=slug
      */
     public function form(Request $request)
     {
         $layanan = $this->layanan();
-        $slug    = $request->query('layanan');
+        $slug = $request->query('layanan');
 
         if (! $slug || ! isset($layanan[$slug])) {
             $slug = array_key_first($layanan);
@@ -76,7 +81,7 @@ class PesananController extends Controller
     }
 
     /**
-     * Proses Step 1 (Data Pesanan) -> simpan ke session -> Step 2 (Pengantaran).
+     * Proses Step 1.
      */
     public function prosesForm(Request $request)
     {
@@ -96,23 +101,33 @@ class PesananController extends Controller
             'telepon' => 'nomor telepon',
         ]);
 
-        $item     = $layanan[$data['layanan']];
+        $item = $layanan[$data['layanan']];
+
         $subtotal = $item['harga'] * (int) $data['jumlah'];
 
-        $pesanan = array_merge($request->session()->get('pesanan', []), $data, [
-            'layanan_nama'  => $item['nama'],
-            'layanan_harga' => $item['harga'],
-            'estimasi'      => $item['estimasi'],
-            'ukuran'        => array_values(array_filter($data['ukuran'], fn ($u) => $u !== null && $u !== '')),
-            'subtotal'      => $subtotal,
-        ]);
+        $pesanan = array_merge(
+            $request->session()->get('pesanan', []),
+            $data,
+            [
+                'layanan_nama'  => $item['nama'],
+                'layanan_harga' => $item['harga'],
+                'estimasi'      => $item['estimasi'],
+                'ukuran'        => array_values(
+                    array_filter(
+                        $data['ukuran'],
+                        fn ($u) => $u !== null && $u !== ''
+                    )
+                ),
+                'subtotal'      => $subtotal,
+            ]
+        );
 
         $request->session()->put('pesanan', $pesanan);
 
         return redirect()->route('pesanan.pengantaran');
     }
-
-    /**
+  
+      /**
      * Step 2 - Metode Pengantaran.
      */
     public function pengantaran(Request $request)
@@ -131,7 +146,7 @@ class PesananController extends Controller
     }
 
     /**
-     * Proses Step 2 (Pengantaran) -> hitung ongkos & total -> Step 3 (Ringkasan).
+     * Proses Step 2 (Pengantaran).
      */
     public function prosesPengantaran(Request $request)
     {
@@ -154,25 +169,28 @@ class PesananController extends Controller
 
         if ($data['metode'] === 'jemput') {
             $request->validate([
-                'kecamatan' => ['required', 'string', 'in:' . implode(',', array_keys($ongkos))],
-            ], [], ['kecamatan' => 'kecamatan']);
+                'kecamatan' => [
+                    'required',
+                    'string',
+                    'in:' . implode(',', array_keys($ongkos)),
+                ],
+            ]);
 
             $ongkosJemput = $ongkos[$data['kecamatan']] ?? 0;
         }
 
-        $pesanan['metode']        = $data['metode'];
-        $pesanan['kecamatan']     = $data['kecamatan'] ?? null;
+        $pesanan['metode'] = $data['metode'];
+        $pesanan['kecamatan'] = $data['kecamatan'] ?? null;
         $pesanan['alamat_jemput'] = $data['alamat_jemput'] ?? null;
         $pesanan['ongkos_jemput'] = $ongkosJemput;
-        $pesanan['total']         = ($pesanan['subtotal'] ?? 0) + $ongkosJemput;
+        $pesanan['total'] = ($pesanan['subtotal'] ?? 0) + $ongkosJemput;
 
         $request->session()->put('pesanan', $pesanan);
 
         return redirect()->route('pesanan.ringkasan');
     }
-
-    /**
-     * Step 3 - Ringkasan Pesanan (tanpa pemilihan pembayaran).
+      /**
+     * Step 3 - Ringkasan Pesanan.
      */
     public function ringkasan(Request $request)
     {
@@ -189,7 +207,7 @@ class PesananController extends Controller
     }
 
     /**
-     * Step 4 - Pembayaran: pilih metode & (bila transfer) unggah bukti.
+     * Step 4 - Pembayaran.
      */
     public function pembayaran(Request $request)
     {
@@ -207,7 +225,7 @@ class PesananController extends Controller
     }
 
     /**
-     * Proses Step 4 -> buat nomor pesanan -> halaman Berhasil.
+     * Proses Step 4 - Simpan Pesanan.
      */
     public function prosesPembayaran(Request $request)
     {
@@ -218,42 +236,67 @@ class PesananController extends Controller
         }
 
         $data = $request->validate([
-            'metode_bayar' => ['required', 'string', 'in:transfer,cash'],
+            'metode_bayar' => ['required', 'string', 'in:transfer,cod'],
         ]);
 
-        if ($data['metode_bayar'] === 'transfer') {
-            $request->validate([
-                'bukti' => ['required', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:5120'],
-            ], [
-                'bukti.required' => 'Silakan unggah bukti pembayaran terlebih dahulu.',
-                'bukti.mimes'    => 'Format berkas harus JPG, PNG, atau PDF.',
-                'bukti.max'      => 'Ukuran berkas maksimal 5 MB.',
-            ]);
+        $kode = '#PTK' . now()->format('ymd') . strtoupper(Str::random(3));
 
-            $pesanan['bukti_pembayaran'] = $request->file('bukti')->store('bukti-pembayaran', 'public');
-        }
+        $pengiriman = ($pesanan['metode'] === 'jemput')
+            ? 'Dijemput Pemilik'
+            : 'Diantar Sendiri';
 
-        $pesanan['metode_bayar'] = $data['metode_bayar'];
-        $pesanan['kode']         = '#PTK' . now()->format('ymd') . strtoupper(Str::random(3));
-        $pesanan['tanggal']      = now()->translatedFormat('d F Y \\• H.i') . ' WIB';
+        $order = [
+            'kode'           => $kode,
+            'tanggal'        => now()->translatedFormat('d F Y'),
+            'waktu'          => now()->translatedFormat('H.i') . ' WIB',
+
+            'layanan'        => $pesanan['layanan_nama'],
+            'slug'           => $pesanan['layanan'],
+
+            'jumlah'         => (int) $pesanan['jumlah'],
+            'ukuran'         => implode(', ', $pesanan['ukuran']),
+            'catatan'        => $pesanan['catatan'],
+
+            'nama'           => $pesanan['nama'],
+            'telepon'        => $pesanan['telepon'],
+            'email'          => $pesanan['email'] ?? null,
+            'alamat'         => $pesanan['alamat'],
+
+            'pengiriman'     => $pengiriman,
+            'kecamatan'      => $pesanan['kecamatan'] ?? null,
+
+            'subtotal'       => $pesanan['subtotal'],
+            'ongkos'         => $pesanan['ongkos_jemput'],
+            'total'          => $pesanan['total'],
+
+            'metode_bayar'   => $data['metode_bayar'],
+            'status'         => 'Menunggu Pembayaran',
+
+            'bukti'          => null,
+        ];
+
+        $list = $request->session()->get('pesanan_list', []);
+
+        $list[] = $order;
+
+        $request->session()->put('pesanan_list', $list);
+        $request->session()->put('pesanan_sukses', $kode);
 
         $request->session()->forget('pesanan');
-        $request->session()->put('pesanan_sukses', $pesanan);
 
-        return redirect()->route('pesanan.berhasil')->with(
-            'sukses',
-            $data['metode_bayar'] === 'transfer'
-                ? 'Bukti pembayaran berhasil dikirim. Menunggu verifikasi admin.'
-                : 'Pesanan berhasil dibuat. Silakan siapkan pembayaran tunai (COD) saat sepatu dijemput atau diantar.'
-        );
+        return redirect()->route('pesanan.berhasil');
     }
-
-    /**
-     * Halaman 5 - Pesanan Berhasil.
+  
+      /**
+     * Halaman Pesanan Berhasil Dibuat.
      */
     public function berhasil(Request $request)
     {
-        $pesanan = $request->session()->get('pesanan_sukses');
+        $kode = $request->session()->get('pesanan_sukses');
+
+        $pesanan = $kode
+            ? $this->cariPesanan($request, $kode)
+            : null;
 
         if (! $pesanan) {
             return redirect()->route('pesanan.beranda');
@@ -265,145 +308,243 @@ class PesananController extends Controller
     }
 
     /**
-     * Data contoh riwayat pesanan (dipakai halaman Riwayat & Nota).
-     *
-     * @return array<int, array<string, mixed>>
+     * Halaman Pembayaran (instruksi transfer).
      */
-    private function daftarRiwayat(): array
+    public function bayar(Request $request, string $kode)
     {
-        return [
-            [
-                'kode'       => '#PTK260712ABX',
-                'tanggal'    => '12 Juli 2026',
-                'layanan'    => 'Deep Cleaning / Regular',
-                'slug'       => 'deep-cleaning-regular',
-                'jumlah'     => 2,
-                'ukuran'     => '42, 40',
-                'catatan'    => 'Sepatu sangat kotor, bagian putih menguning.',
-                'nama'       => 'Andi Saputra',
-                'telepon'    => '0812-3456-7890',
-                'alamat'     => 'Jl. Ahmad Yani No.12, Pontianak Selatan',
-                'pengiriman' => 'Diantar Sendiri',
-                'subtotal'   => 70000,
-                'ongkos'     => 0,
-                'total'      => 70000,
-                'status'     => 'Selesai',
-            ],
-            [
-                'kode'       => '#PTK260710KDL',
-                'tanggal'    => '10 Juli 2026',
-                'layanan'    => 'Unyellowing / Whitening',
-                'slug'       => 'unyellowing',
-                'jumlah'     => 1,
-                'ukuran'     => '39',
-                'catatan'    => 'Bagian midsole menguning.',
-                'nama'       => 'Andi Saputra',
-                'telepon'    => '0812-3456-7890',
-                'alamat'     => 'Jl. Ahmad Yani No.12, Pontianak Selatan',
-                'pengiriman' => 'Dijemput Pemilik',
-                'subtotal'   => 40000,
-                'ongkos'     => 5000,
-                'total'      => 45000,
-                'status'     => 'Diproses',
-            ],
-            [
-                'kode'       => '#PTK260708QWZ',
-                'tanggal'    => '8 Juli 2026',
-                'layanan'    => 'Repaint Full',
-                'slug'       => 'repaint-full',
-                'jumlah'     => 1,
-                'ukuran'     => '43',
-                'catatan'    => 'Repaint warna putih penuh.',
-                'nama'       => 'Andi Saputra',
-                'telepon'    => '0812-3456-7890',
-                'alamat'     => 'Jl. Ahmad Yani No.12, Pontianak Selatan',
-                'pengiriman' => 'Diantar Sendiri',
-                'subtotal'   => 85000,
-                'ongkos'     => 0,
-                'total'      => 85000,
-                'status'     => 'Menunggu Verifikasi',
-            ],
-        ];
-    }
+        $pesanan = $this->cariPesanan($request, $kode);
 
-    /**
-     * Halaman Riwayat Pesanan (data contoh untuk tampilan).
-     */
-    public function riwayat()
-    {
-        return view('pesanan.riwayat', [
-            'riwayat' => $this->daftarRiwayat(),
+        if (! $pesanan || ($pesanan['metode_bayar'] ?? '') !== 'transfer') {
+            return redirect()->route('pesanan.riwayat');
+        }
+
+        return view('pesanan.bayar', [
+            'pesanan'  => $pesanan,
+            'rekening' => config('layanan.kontak.rekening', []),
         ]);
     }
 
     /**
-     * Halaman Nota Pesanan (detail + status pengerjaan).
+     * Halaman Upload Bukti Pembayaran.
      */
-    public function nota(string $kode)
+    public function bukti(Request $request, string $kode)
     {
-        $pesanan = collect($this->daftarRiwayat())
-            ->firstWhere(fn ($item) => ltrim($item['kode'], '#') === $kode);
+        $pesanan = $this->cariPesanan($request, $kode);
+
+        if (! $pesanan || ($pesanan['metode_bayar'] ?? '') !== 'transfer') {
+            return redirect()->route('pesanan.riwayat');
+        }
+
+        return view('pesanan.bukti', [
+            'pesanan' => $pesanan,
+        ]);
+    }
+
+    /**
+     * Proses Upload Bukti Pembayaran.
+     */
+    public function prosesBukti(Request $request, string $kode)
+    {
+        $pesanan = $this->cariPesanan($request, $kode);
+
+        if (! $pesanan) {
+            return redirect()->route('pesanan.riwayat');
+        }
+
+        $request->validate([
+            'bukti' => [
+                'required',
+                'image',
+                'mimes:jpg,jpeg,png',
+                'max:5120',
+            ],
+        ]);
+
+        $path = $request->file('bukti')
+            ->store('bukti-pembayaran', 'public');
+
+        $this->ubahStatus(
+            $request,
+            $kode,
+            'Menunggu Verifikasi',
+            [
+                'bukti' => $path,
+            ]
+        );
+
+        $request->session()->put(
+            'pesanan_sukses',
+            $pesanan['kode']
+        );
+
+        return redirect()->route('pesanan.bukti.berhasil');
+    }
+
+    /**
+     * Halaman bukti pembayaran berhasil dikirim.
+     */
+    public function buktiBerhasil(Request $request)
+    {
+        $kode = $request->session()->get('pesanan_sukses');
+
+        $pesanan = $kode
+            ? $this->cariPesanan($request, $kode)
+            : null;
+
+        if (! $pesanan) {
+            return redirect()->route('pesanan.riwayat');
+        }
+
+        return view('pesanan.bukti-berhasil', [
+            'pesanan' => $pesanan,
+        ]);
+    }
+  
+      /**
+     * Membatalkan pesanan.
+     */
+    public function batalkan(Request $request, string $kode)
+    {
+        $pesanan = $this->cariPesanan($request, $kode);
+
+        if (! $pesanan) {
+            return redirect()->route('pesanan.riwayat');
+        }
+
+        if (in_array($pesanan['status'], ['Selesai', 'Dibatalkan'], true)) {
+            return redirect()
+                ->route('pesanan.riwayat')
+                ->with('info', 'Pesanan tidak dapat dibatalkan.');
+        }
+
+        $this->ubahStatus($request, $kode, 'Dibatalkan');
+
+        return redirect()
+            ->route('pesanan.riwayat')
+            ->with('info', 'Pesanan berhasil dibatalkan.');
+    }
+
+    /**
+     * Menampilkan riwayat pesanan.
+     */
+    public function riwayat(Request $request)
+    {
+        return view('pesanan.riwayat', [
+            'riwayat' => $request->session()->get('pesanan_list', []),
+        ]);
+    }
+
+    /**
+     * Menampilkan nota pesanan.
+     */
+    public function nota(Request $request, string $kode)
+    {
+        $pesanan = $this->cariPesanan($request, $kode);
 
         if (! $pesanan) {
             abort(404);
         }
 
-        $langkah = ['Pembayaran Terverifikasi', 'Sedang Dicuci', 'Sedang Dikeringkan', 'Siap Diambil', 'Selesai'];
-
-        // Indeks langkah yang sedang aktif berdasarkan status.
-        $aktif = match ($pesanan['status']) {
-            'Selesai'  => 5,
-            'Diproses' => 1,
-            default    => 0,
-        };
-
-        $waktu = [
-            'Pembayaran Terverifikasi' => $pesanan['tanggal'] . ', 09.15',
-            'Sedang Dicuci'            => $pesanan['tanggal'] . ', 11.30',
-            'Sedang Dikeringkan'       => 'Estimasi Selesai',
-            'Siap Diambil'             => null,
-            'Selesai'                  => null,
-        ];
-
-        $timeline = [];
-        foreach ($langkah as $i => $label) {
-            $timeline[] = [
-                'label' => $label,
-                'waktu' => $waktu[$label] ?? null,
-                'state' => $i < $aktif ? 'done' : ($i === $aktif ? 'current' : 'pending'),
-            ];
-        }
-
-        [$statusLabel, $statusDesc] = match ($pesanan['status']) {
-            'Selesai'  => ['Selesai', 'Pesanan Anda telah selesai. Terima kasih telah mempercayakan sepatu Anda kepada kami.'],
-            'Diproses' => ['Sedang Dicuci', 'Sepatu Anda sedang dalam proses pencucian oleh pemilik usaha.'],
-            default    => ['Menunggu Verifikasi', 'Pembayaran Anda sedang menunggu verifikasi admin.'],
-        };
-
         return view('pesanan.nota', [
-            'pesanan'     => $pesanan,
-            'timeline'    => $timeline,
-            'statusLabel' => $statusLabel,
-            'statusDesc'  => $statusDesc,
-            'noNota'      => 'NOTA-' . ltrim($pesanan['kode'], '#'),
-            'noPesanan'   => ltrim($pesanan['kode'], '#'),
+            'pesanan' => $pesanan,
         ]);
     }
 
     /**
-     * Halaman Akun (tampilan; memakai data user login bila tersedia).
+     * Halaman akun.
      */
-    public function akun()
+    public function akun(Request $request)
     {
-        $user = [
-            'nama'    => optional(auth()->user())->name ?? 'Nabila',
-            'email'   => optional(auth()->user())->email ?? 'Taehyung123@gmail.com',
-            'telepon' => '081234567890',
-            'alamat'  => 'Jl. Merdeka No. 123, Pontianak, Kalimantan Barat',
-        ];
-
         return view('pesanan.akun', [
-            'user' => $user,
+            'user' => $request->session()->get('user', [
+                'nama'     => 'Pengguna',
+                'email'    => 'user@email.com',
+                'telepon'  => '',
+                'alamat'   => '',
+                'foto'     => null,
+            ]),
         ]);
     }
-}
+
+    /**
+     * Update data akun.
+     */
+    public function updateAkun(Request $request)
+    {
+        $data = $request->validate([
+            'nama'     => ['required', 'string', 'max:100'],
+            'email'    => ['required', 'email', 'max:100'],
+            'telepon'  => ['required', 'string', 'max:20'],
+            'alamat'   => ['required', 'string', 'max:255'],
+            'password' => ['nullable', 'string', 'min:6'],
+            'foto'     => ['nullable', 'image', 'max:5120'],
+        ]);
+
+        $user = $request->session()->get('user', []);
+
+        if ($request->hasFile('foto')) {
+
+            if (! empty($user['foto'])) {
+                Storage::disk('public')->delete($user['foto']);
+            }
+
+            $data['foto'] = $request
+                ->file('foto')
+                ->store('foto-profil', 'public');
+        } else {
+            $data['foto'] = $user['foto'] ?? null;
+        }
+
+        if (empty($data['password'])) {
+            unset($data['password']);
+        }
+
+        $request->session()->put('user', array_merge($user, $data));
+
+        return back()->with('sukses', 'Profil berhasil diperbarui.');
+    }
+
+    /**
+     * Mencari pesanan berdasarkan kode.
+     */
+    private function cariPesanan(Request $request, string $kode): ?array
+    {
+        $list = $request->session()->get('pesanan_list', []);
+
+        foreach ($list as $item) {
+            if (ltrim($item['kode'], '#') === ltrim($kode, '#')) {
+                return $item;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Mengubah status pesanan.
+     */
+    private function ubahStatus(
+        Request $request,
+        string $kode,
+        string $status,
+        array $tambahan = []
+    ): void {
+
+        $list = $request->session()->get('pesanan_list', []);
+
+        foreach ($list as &$item) {
+
+            if (ltrim($item['kode'], '#') === ltrim($kode, '#')) {
+
+                $item['status'] = $status;
+
+                foreach ($tambahan as $key => $value) {
+                    $item[$key] = $value;
+                }
+
+                break;
+            }
+        }
+
+        $request->session()->put('pesanan_list', $list);
+    }

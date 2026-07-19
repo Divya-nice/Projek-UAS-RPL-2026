@@ -1,112 +1,72 @@
 <?php
 
+use App\Http\Controllers\AuthController;
 use App\Http\Controllers\PesananController;
-use App\Models\User;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Route;
-use Illuminate\Validation\ValidationException;
+
+// Halaman awal -> login
+Route::redirect('/', '/login');
+
+// Halaman autentikasi
+Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
+Route::post('/login', [AuthController::class, 'login']);
+
+Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
+Route::post('/register', [AuthController::class, 'register']);
+
+// Halaman logout
+Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
 /*
 |--------------------------------------------------------------------------
-| Web Routes
+| Halaman Pelanggan
 |--------------------------------------------------------------------------
 */
+Route::middleware('auth')->controller(PesananController::class)->group(function () {
 
-// Halaman utama menampilkan Beranda Pelanggan
-Route::get('/', [PesananController::class, 'beranda'])->name('pesanan.beranda');
+    Route::get('/beranda', 'beranda')->name('pesanan.beranda');
 
-/*
-| Alur Pemesanan (frontend)
-*/
-Route::controller(PesananController::class)->group(function () {
-    Route::get('/beranda', 'beranda')->name('pesanan.beranda.alt');
     Route::get('/layanan', 'katalog')->name('pesanan.katalog');
+
     Route::get('/pesanan/buat', 'form')->name('pesanan.form');
     Route::post('/pesanan/buat', 'prosesForm')->name('pesanan.form.proses');
+  
     Route::get('/pesanan/pengantaran', 'pengantaran')->name('pesanan.pengantaran');
     Route::post('/pesanan/pengantaran', 'prosesPengantaran')->name('pesanan.pengantaran.proses');
     Route::get('/pesanan/ringkasan', 'ringkasan')->name('pesanan.ringkasan');
+
     Route::get('/pesanan/pembayaran', 'pembayaran')->name('pesanan.pembayaran');
     Route::post('/pesanan/pembayaran', 'prosesPembayaran')->name('pesanan.pembayaran.proses');
+
     Route::get('/pesanan/berhasil', 'berhasil')->name('pesanan.berhasil');
-    Route::get('/riwayat', 'riwayat')->name('pesanan.riwayat');
+
+    Route::get('/pesanan/upload-berhasil', 'buktiBerhasil')->name('pesanan.bukti.berhasil');
+
+    Route::get('/pesanan/{kode}/bayar', 'bayar')->name('pesanan.bayar');
+
+    Route::get('/pesanan/{kode}/bukti', 'bukti')->name('pesanan.bukti');
+
+    Route::post('/pesanan/{kode}/bukti', 'prosesBukti')->name('pesanan.bukti.proses');
+
+    Route::post('/pesanan/{kode}/batalkan', 'batalkan')->name('pesanan.batalkan');
+
+    Route::get('/riwayat', 'riwayat')->name('pesanan.riwayat');  
+  
     Route::get('/riwayat/nota/{kode}', 'nota')->name('pesanan.nota');
+
+    // Akun
     Route::get('/akun', 'akun')->name('pesanan.akun');
+    Route::put('/akun', 'updateAkun')->name('akun.update');
 });
-
-// Halaman autentikasi (tampilan) — UI login/register TIDAK diubah.
-Route::view('/login', 'auth.login')->name('login');
-Route::view('/register', 'auth.register')->name('register');
-
-/*
-| Handler autentikasi (POST) — logika ditaruh langsung di sini
-| supaya tidak butuh controller terpisah / autoload tambahan.
-*/
-Route::post('/login', function (Request $request) {
-    $credentials = $request->validate([
-        'email'    => ['required', 'email'],
-        'password' => ['required'],
-    ]);
-
-    if (! Auth::attempt($credentials, $request->boolean('remember'))) {
-        throw ValidationException::withMessages([
-            'email' => 'Email atau password salah.',
-        ]);
-    }
-
-    $request->session()->regenerate();
-
-    return redirect()->intended(route('pesanan.beranda'));
-});
-
-Route::post('/register', function (Request $request) {
-    $data = $request->validate([
-        'name'     => ['required', 'string', 'max:255'],
-        'email'    => ['required', 'email', 'max:255', 'unique:users,email'],
-        'phone'    => ['nullable', 'string', 'max:30'],
-        'password' => ['required', 'string', 'min:8', 'confirmed'],
-    ]);
-
-    $user = User::create([
-        'name'     => $data['name'],
-        'email'    => $data['email'],
-        'password' => Hash::make($data['password']),
-    ]);
-
-    Auth::login($user);
-
-    return redirect()->route('pesanan.beranda');
-});
-
-Route::post('/logout', function (Request $request) {
-    Auth::logout();
-    $request->session()->invalidate();
-    $request->session()->regenerateToken();
-
-    return redirect()->route('pesanan.beranda');
-})->name('logout');
 
 /*
 |--------------------------------------------------------------------------
-| Admin (UI only) — branch feature/dashboard-admin-ui
-| View-only routes; tidak menyentuh controller/model/migration/database.
+| Admin (UI Only)
 |--------------------------------------------------------------------------
 */
-Route::prefix('admin')->group(function () {
+Route::middleware('auth')->prefix('admin')->group(function () {
+
     Route::view('/dashboard', 'admin.dashboard')->name('admin.dashboard');
-
-    // Login Admin (halaman terpisah dari login pelanggan)
-Route::view('/login', 'auth.login-admin')->name('admin.login');
-Route::post('/login', function (Request $request) {
-    $request->validate([
-        'email'    => ['required', 'email'],
-        'password' => ['required'],
-    ]);
-    // UI-only: langsung arahkan ke dashboard admin.
-    return redirect()->route('admin.dashboard');
-})->name('admin.login.submit');
 
     // Kelola Pesanan
     Route::view('/pesanan', 'admin.pesanan.index')->name('admin.pesanan');

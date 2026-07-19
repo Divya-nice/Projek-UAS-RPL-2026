@@ -1,4 +1,7 @@
 @extends('layouts.app')
+@php
+    use Illuminate\Support\Str;
+@endphp
 
 @section('title', 'Katalog Layanan — Cuci Sepatu')
 
@@ -35,13 +38,13 @@
             <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
                 @foreach($layanan as $slug => $item)
                     <x-service-card
-                        :slug="$slug"
+                        :slug="Str::slug($item['nama'])"
                         :nama="$item['nama']"
                         :harga="\App\Http\Controllers\PesananController::rupiah($item['harga'])"
                         :estimasi="$item['estimasi']"
                         :deskripsi="$item['deskripsi']"
-                        :populer="$item['populer']" />
-                @endforeach
+                    />
+@endforeach
             </div>
         </div>
     </section>

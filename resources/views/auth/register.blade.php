@@ -39,20 +39,6 @@
         </button>
     </form>
 
-    {{-- Pemisah --}}
-    <div class="my-5 flex items-center gap-4">
-        <span class="h-px flex-1 bg-slate-200"></span>
-        <span class="text-xs font-medium uppercase tracking-wide text-slate-400">Atau</span>
-        <span class="h-px flex-1 bg-slate-200"></span>
-    </div>
-
-    {{-- Daftar dengan Google (arahkan href ke route OAuth milik tim) --}}
-    <a href="#"
-       class="flex w-full items-center justify-center gap-2.5 rounded-lg border border-slate-200 bg-white py-2.5 text-sm font-medium text-slate-600 shadow-sm transition hover:bg-slate-50">
-        <x-google-icon />
-        <span>Lanjutkan dengan Google</span>
-    </a>
-
     <p class="mt-6 text-center text-sm text-slate-500">
         Sudah punya akun?
         <a href="{{ url('/login') }}" class="font-semibold text-[#1E7BC8] hover:underline">Masuk</a>
