@@ -82,7 +82,6 @@
 
                     <div class="grid gap-5 sm:grid-cols-2">
 
-
         <div>
     <label class="mb-1.5 block text-sm font-medium text-[#1E293B]">
         Nama Lengkap
