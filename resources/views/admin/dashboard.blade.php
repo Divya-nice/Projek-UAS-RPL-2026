@@ -56,7 +56,7 @@
                 <h2 class="text-lg font-bold text-slate-900">Pesanan yang Membutuhkan Tindakan</h2>
                 <span class="flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[11px] font-bold text-white">4</span>
             </div>
-            <a href="{{ route('admin.pesanan') }}" class="shrink-0 rounded-lg border border-slate-200 px-3 py-1.5 text-sm font-medium text-slate-600 hover:bg-slate-50">Lihat Semua</a>
+            <a href={{ route('admin.pesanan') }}" class="shrink-0 rounded-lg border border-slate-200 px-3 py-1.5 text-sm font-medium text-slate-600 hover:bg-slate-50">Lihat Semua</a>
         </div>
         <p class="mt-1 mb-4 text-sm text-slate-500">Pesanan yang perlu segera Anda tindak lanjuti.</p>
 

@@ -66,38 +66,38 @@ Route::get('/admin/login', function () {
     return view('auth.login-admin');
 })->name('admin.login');
 
-Route::post('/admin/login', [AuthController::class, 'login'])
+Route::post('/admin/login', [AuthController::class, 'adminLogin'])
     ->name('admin.login.submit');
-    
 /*
 |--------------------------------------------------------------------------
 | Admin (UI Only)
 |--------------------------------------------------------------------------
 */
-Route::middleware('auth')->prefix('admin')->group(function () {
-
-    Route::view('/dashboard', 'admin.dashboard')->name('admin.dashboard');
-
+Route::prefix('admin')->group(function () {
     // Kelola Pesanan
-    Route::view('/pesanan', 'admin.pesanan.index')->name('admin.pesanan');
-    Route::view('/pesanan/detail', 'admin.pesanan.detail')->name('admin.pesanan.detail');
-    Route::post('/pesanan/update-status', function () {
-        return back()->with('status', 'Status pesanan berhasil diperbarui.');
-    })->name('admin.pesanan.update');
+Route::get('/pesanan', [AdminController::class, 'pesanan'])
+    ->name('admin.pesanan');
 
-    // Kelola Layanan
-    Route::view('/layanan', 'admin.layanan.index')->name('admin.layanan');
-    Route::view('/layanan/tambah', 'admin.layanan.form', ['mode' => 'create'])->name('admin.layanan.create');
-    Route::view('/layanan/edit', 'admin.layanan.form', ['mode' => 'edit'])->name('admin.layanan.edit');
-    Route::post('/layanan', function () {
-        return redirect()->route('admin.layanan')->with('status', 'Layanan baru berhasil ditambahkan.');
-    })->name('admin.layanan.store');
-    Route::post('/layanan/update', function () {
-        return redirect()->route('admin.layanan')->with('status', 'Layanan berhasil diperbarui.');
-    })->name('admin.layanan.update');
-    Route::post('/layanan/hapus', function () {
-        return redirect()->route('admin.layanan')->with('status', 'Layanan berhasil dihapus.');
-    })->name('admin.layanan.destroy');
+    Route::get('/pesanan/{kode}', [AdminController::class,'detailPesanan'])->name('admin.pesanan.detail');
+
+   // Kelola Layanan
+Route::get('/layanan', [AdminController::class, 'layanan'])
+    ->name('admin.layanan');
+
+Route::get('/layanan/tambah', [AdminController::class, 'createLayanan'])
+    ->name('admin.layanan.create');
+
+Route::post('/layanan', [AdminController::class, 'storeLayanan'])
+    ->name('admin.layanan.store');
+
+Route::get('/layanan/{layanan}/edit', [AdminController::class, 'editLayanan'])
+    ->name('admin.layanan.edit');
+
+Route::put('/layanan/{layanan}', [AdminController::class, 'updateLayanan'])
+    ->name('admin.layanan.update');
+
+Route::delete('/layanan/{layanan}', [AdminController::class, 'destroyLayanan'])
+    ->name('admin.layanan.destroy');
     
     // Verifikasi Pembayaran
 

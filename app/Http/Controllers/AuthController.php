@@ -43,26 +43,47 @@ class AuthController extends Controller
     }
 
     // Proses login
-    public function login(Request $request)
+   // Proses login
+public function login(Request $request)
 {
     $credentials = $request->validate([
         'email' => 'required|email',
         'password' => 'required',
     ]);
 
-   if (Auth::attempt($credentials)) {
+    if (Auth::attempt($credentials)) {
 
-    $request->session()->regenerate();
+        $request->session()->regenerate();
 
-    if (Auth::user()->email === 'admin1@gmail.com') {
-        return redirect()->route('admin.dashboard');
+        if ($request->email === 'admin1@gmail.com') {
+            return redirect()->route('admin.dashboard');
+        }
+
+        return redirect()->route('pesanan.beranda');
     }
-
-    return redirect()->route('pesanan.beranda');
-}
 
     return back()->withErrors([
         'email' => 'Email atau password salah.',
+    ]);
+}
+
+// Login Admin
+public function adminLogin(Request $request)
+{
+    $credentials = $request->validate([
+        'email' => 'required|email',
+        'password' => 'required',
+    ]);
+
+    if (Auth::attempt($credentials)) {
+
+        $request->session()->regenerate();
+
+        return redirect('/admin/dashboard');
+    }
+
+    return back()->withErrors([
+        'email' => 'Email atau password admin salah.',
     ]);
 }
 
