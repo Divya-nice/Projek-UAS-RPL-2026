@@ -58,6 +58,16 @@ return new class extends Migration
                   ->default('Menunggu Pembayaran');
 
             $table->timestamps();
+
+            $table->string('bukti_pembayaran')->nullable();
+
+            $table->enum('status_pembayaran',[
+            'menunggu_upload',
+            'menunggu_verifikasi',
+            'diterima',
+            'ditolak'
+            ])->default('menunggu_upload');
+
         });
     }
 

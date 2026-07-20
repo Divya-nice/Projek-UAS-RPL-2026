@@ -44,23 +44,27 @@ class AuthController extends Controller
 
     // Proses login
     public function login(Request $request)
-    {
-        $credentials = $request->validate([
-            'email' => 'required|email',
-            'password' => 'required',
-        ]);
+{
+    $credentials = $request->validate([
+        'email' => 'required|email',
+        'password' => 'required',
+    ]);
 
-        if (Auth::attempt($credentials)) {
+   if (Auth::attempt($credentials)) {
 
-            $request->session()->regenerate();
+    $request->session()->regenerate();
 
-            return redirect()->route('pesanan.beranda');
-        }
-
-        return back()->withErrors([
-            'email' => 'Email atau password salah.',
-        ]);
+    if (Auth::user()->email === 'admin1@gmail.com') {
+        return redirect()->route('admin.dashboard');
     }
+
+    return redirect()->route('pesanan.beranda');
+}
+
+    return back()->withErrors([
+        'email' => 'Email atau password salah.',
+    ]);
+}
 
     // Logout
     public function logout(Request $request)
@@ -73,4 +77,51 @@ class AuthController extends Controller
 
         return redirect()->route('login');
     }
+    public function updateAdminProfile(Request $request)
+{
+    $request->validate([
+        'name' => 'required',
+        'email' => 'required|email',
+        'phone' => 'nullable',
+        'foto' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+    ]);
+
+    $user = Auth::user();
+
+    $user->name = $request->name;
+    $user->email = $request->email;
+    $user->phone = $request->phone;
+
+    if ($request->hasFile('foto')) {
+    $foto = $request->file('foto')->store('foto-profil', 'public');
+    $user->foto = $foto;
+}
+$user->foto = $foto;
+
+dd($user->getAttributes());
+$user->save();
+
+$user->refresh();
+dd($user->foto);
+
+    return back()->with('success', 'Profil berhasil diperbarui.');
+}
+public function updatePassword(Request $request)
+{
+    $request->validate([
+        'current_password' => 'required',
+        'new_password' => 'required|min:8|confirmed',
+    ]);
+
+    $user = Auth::user();
+
+    if (!Hash::check($request->current_password, $user->password)) {
+        return back()->with('error', 'Password lama salah.');
+    }
+
+    $user->password = Hash::make($request->new_password);
+    $user->save();
+
+    return back()->with('success', 'Password berhasil diubah.');
+}
 }

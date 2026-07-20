@@ -3,6 +3,8 @@
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\PesananController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\AdminController;
+
 
 // Halaman awal -> login
 Route::redirect('/', '/login');
@@ -59,6 +61,14 @@ Route::middleware('auth')->controller(PesananController::class)->group(function 
     Route::put('/akun', 'updateAkun')->name('akun.update');
 });
 
+// Login Admin
+Route::get('/admin/login', function () {
+    return view('auth.login-admin');
+})->name('admin.login');
+
+Route::post('/admin/login', [AuthController::class, 'login'])
+    ->name('admin.login.submit');
+    
 /*
 |--------------------------------------------------------------------------
 | Admin (UI Only)
@@ -88,32 +98,44 @@ Route::middleware('auth')->prefix('admin')->group(function () {
     Route::post('/layanan/hapus', function () {
         return redirect()->route('admin.layanan')->with('status', 'Layanan berhasil dihapus.');
     })->name('admin.layanan.destroy');
-
+    
     // Verifikasi Pembayaran
-    Route::view('/verifikasi', 'admin.verifikasi.index')->name('admin.verifikasi');
-    Route::view('/verifikasi/detail', 'admin.verifikasi.detail')->name('admin.verifikasi.detail');
-    Route::post('/verifikasi/terima', function () {
-        return redirect()->route('admin.verifikasi')->with('status', 'Pembayaran berhasil diverifikasi.');
-    })->name('admin.verifikasi.terima');
-    Route::post('/verifikasi/tolak', function () {
-        return redirect()->route('admin.verifikasi')->with('status', 'Pembayaran telah ditolak.');
-    })->name('admin.verifikasi.tolak');
+
+Route::get('/verifikasi', [AdminController::class, 'verifikasi'])
+    ->name('admin.verifikasi');
+
+Route::get('/verifikasi/{kode}', [AdminController::class, 'detailVerifikasi'])
+    ->name('admin.verifikasi.detail');
+
+Route::post('/verifikasi/{kode}/terima',
+    [AdminController::class, 'terimaPembayaran'])
+    ->name('admin.verifikasi.terima');
+
+Route::post('/verifikasi/{kode}/tolak',
+    [AdminController::class, 'tolakPembayaran'])
+    ->name('admin.verifikasi.tolak');
 
     // Laporan Pendapatan
     Route::view('/laporan', 'admin.laporan.index')->name('admin.laporan');
 
     // Edit Profil & Ubah Password
-    Route::view('/profil', 'admin.profil')->name('admin.profil');
-    Route::post('/profil', function () {
-        return back()->with('status', 'Profil berhasil diperbarui.');
-    })->name('admin.profil.update');
-    Route::view('/ubah-password', 'admin.password')->name('admin.password');
-    Route::post('/ubah-password', function () {
-        return back()->with('status', 'Password berhasil diubah.');
-    })->name('admin.password.update');
+Route::view('/profil', 'admin.profil')->name('admin.profil');
+
+// Update Profil
+Route::post('/profil/update', [AuthController::class, 'updateAdminProfile'])
+    ->name('admin.profile.update');
+
+// Halaman Ubah Password
+Route::view('/ubah-password', 'admin.password')
+    ->name('admin.password');
+
+// Update Password
+Route::post('/ubah-password', [AuthController::class, 'updatePassword'])
+    ->name('admin.password.update');
 
     // Logout admin (UI only)
     Route::get('/logout', function () {
         return redirect('/');
     })->name('admin.logout');
+;
 });

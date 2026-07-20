@@ -56,23 +56,32 @@
     {{-- Aksi verifikasi --}}
     <div class="{{ $labelCard }}">
         <p class="{{ $cardTitle }}">Tindakan Verifikasi</p>
-        <div class="flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <a href="{{ route('admin.verifikasi') }}" class="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 px-5 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-50">
-                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="1.7" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" /></svg>
-                Kembali
-            </a>
-            <div class="flex flex-col gap-3 sm:flex-row">
-                <form action="{{ route('admin.verifikasi.tolak') }}" method="POST" onsubmit="return confirm('Tolak pembayaran ini?')">
-                    @csrf
-                    <button type="submit" class="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-red-200 px-5 py-2.5 text-sm font-semibold text-red-500 hover:bg-red-50">
-                        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="1.7" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" /></svg>
-                        Tolak Pembayaran
-                    </button>
-                </form>
-                <button type="button" data-terima-open class="inline-flex items-center justify-center gap-2 rounded-xl bg-green-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-green-700">
-                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="1.7" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
-                    Terima Pembayaran
-                </button>
+        <div class="flex flex-col gap-3 sm:flex-row">
+
+   <form action="{{ route('admin.verifikasi.tolak', 'PTK240520128') }}"
+      method="POST"
+      onsubmit="return confirm('Tolak pembayaran ini?')">
+    @csrf
+
+    <button type="submit" class="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-red-200 px-5 py-2.5 text-sm font-semibold text-red-500 hover:bg-red-50">
+        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="1.7" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+        </svg>
+        Tolak Pembayaran
+    </button>
+</form>
+
+    <form action="{{ route('admin.verifikasi.terima', 'PTK240520128') }}" method="POST" onsubmit="return confirm('Terima pembayaran ini?')">
+        @csrf
+        <button type="submit" class="inline-flex items-center justify-center gap-2 rounded-xl bg-green-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-green-700">
+            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="1.7" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+            </svg>
+            Terima Pembayaran
+        </button>
+    </form>
+
+</div>
             </div>
         </div>
     </div>

@@ -380,6 +380,29 @@ class PesananController extends Controller
         return redirect()->route('pesanan.bukti.berhasil');
     }
 
+    public function verifikasi(Request $request)
+{
+    $pending = collect($request->session()->get('pesanan_list', []))
+        ->where('status', 'Menunggu Verifikasi')
+        ->values();
+
+    return view('admin.verifikasi.index', compact('pending'));
+}
+
+public function detailVerifikasi($kode, Request $request)
+{
+    $pesanan = collect($request->session()->get('pesanan_list', []))
+        ->firstWhere('kode', $kode);
+
+    if (!$pesanan) {
+        return redirect()
+            ->route('admin.verifikasi')
+            ->with('error', 'Pesanan tidak ditemukan.');
+    }
+
+    return view('admin.verifikasi.detail', compact('pesanan'));
+}
+
     /**
      * Halaman bukti pembayaran berhasil dikirim.
      */
@@ -504,6 +527,34 @@ class PesananController extends Controller
         return back()->with('sukses', 'Profil berhasil diperbarui.');
     }
 
+    public function terimaPembayaran(Request $request, string $kode)
+{
+    $this->ubahStatus($request, $kode, 'Pembayaran Diterima');
+
+    return redirect()
+        ->route('admin.verifikasi')
+        ->with('status', 'Pembayaran berhasil diterima.');
+}
+
+public function tolakPembayaran(Request $request, string $kode)
+{
+    $this->ubahStatus($request, $kode, 'Pembayaran Ditolak');
+
+    return redirect()
+        ->route('admin.verifikasi')
+        ->with('status', 'Pembayaran ditolak.');
+}
+
+public function verifikasi(Request $request)
+{
+    $list = $request->session()->get('pesanan_list', []);
+
+    $pending = array_filter($list, function ($item) {
+        return $item['status'] == 'Menunggu Verifikasi';
+    });
+
+    return view('admin.verifikasi.index', compact('pending'));
+}
     /**
      * Mencari pesanan berdasarkan kode.
      */

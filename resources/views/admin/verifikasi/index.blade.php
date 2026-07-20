@@ -3,12 +3,7 @@
 @section('title', 'Verifikasi Pembayaran')
 
 @section('content')
-@php
-    $pending = [
-        ['no' => '#PTK240520128', 'nama' => 'Nabila Septi Ramadani', 'hp' => '0813-3456-7890', 'tgl' => '20 Mei 2024', 'jam' => '10:30', 'total' => 'Rp45.000'],
-        ['no' => '#PTK240520127', 'nama' => 'Siti Aisyah',           'hp' => '0813-2222-1111', 'tgl' => '20 Mei 2024', 'jam' => '09:15', 'total' => 'Rp60.000'],
-    ];
-@endphp
+
 <div class="mx-auto max-w-6xl space-y-6">
 
     {{-- Judul --}}
@@ -75,8 +70,8 @@
         </div>
 
         <div class="divide-y divide-slate-100">
-            @foreach ($pending as $p)
-            <a href="{{ route('admin.verifikasi.detail') }}" class="flex items-center gap-4 px-5 py-4 transition hover:bg-slate-50">
+           @forelse ($pending as $p)
+            <a href="{{ route('admin.verifikasi.detail', $p['kode']) }}"
                 {{-- Order + pelanggan --}}
                 <div class="min-w-0 flex-1">
                     <p class="font-semibold text-slate-800">{{ $p['no'] }}</p>
@@ -96,7 +91,11 @@
                     <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" /></svg>
                 </span>
             </a>
-            @endforeach
+            @empty
+            <div class="px-5 py-10 text-center text-slate-500">
+            Belum ada pembayaran yang menunggu verifikasi.
+            </div>
+            @endforelse
         </div>
     </div>
 
