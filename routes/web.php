@@ -68,17 +68,26 @@ Route::get('/admin/login', function () {
 
 Route::post('/admin/login', [AuthController::class, 'adminLogin'])
     ->name('admin.login.submit');
+
+
 /*
 |--------------------------------------------------------------------------
 | Admin (UI Only)
 |--------------------------------------------------------------------------
 */
+Route::get('/dashboard', [AdminController::class, 'dashboard'])
+    ->name('admin.dashboard');
 Route::prefix('admin')->group(function () {
     // Kelola Pesanan
 Route::get('/pesanan', [AdminController::class, 'pesanan'])
     ->name('admin.pesanan');
 
-    Route::get('/pesanan/{kode}', [AdminController::class,'detailPesanan'])->name('admin.pesanan.detail');
+Route::get('/pesanan/detail/{kode}', [AdminController::class,'detailPesanan'])
+    ->name('admin.pesanan.detail');
+
+Route::post('/pesanan/{kode}/status',
+    [AdminController::class,'updateStatus'])
+    ->name('admin.pesanan.status');
 
    // Kelola Layanan
 Route::get('/layanan', [AdminController::class, 'layanan'])
@@ -114,9 +123,10 @@ Route::post('/verifikasi/{kode}/terima',
 Route::post('/verifikasi/{kode}/tolak',
     [AdminController::class, 'tolakPembayaran'])
     ->name('admin.verifikasi.tolak');
-
+    
     // Laporan Pendapatan
-    Route::view('/laporan', 'admin.laporan.index')->name('admin.laporan');
+Route::get('/laporan', [AdminController::class,'laporan'])
+    ->name('admin.laporan');
 
     // Edit Profil & Ubah Password
 Route::view('/profil', 'admin.profil')->name('admin.profil');

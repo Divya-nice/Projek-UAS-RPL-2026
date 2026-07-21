@@ -5,6 +5,9 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
+use App\Models\Pesanan;
+use App\Models\Layanan;
+use Illuminate\Support\Facades\Auth;
 
 class PesananController extends Controller
 {
@@ -275,16 +278,30 @@ class PesananController extends Controller
             'bukti'          => null,
         ];
 
-        $list = $request->session()->get('pesanan_list', []);
+    $layanan = Layanan::where('nama_layanan', $pesanan['layanan_nama'])->firstOrFail();
+    Pesanan::create([
+    'user_id' => Auth::id(),
+    'layanan_id' => $layanan->id,
+    'nomor_pesanan' => $kode,
+    'nama' => $pesanan['nama'],
+    'nomor_hp' => $pesanan['telepon'],
+    'alamat' => $pesanan['alamat'],
+    'wilayah' => $pesanan['kecamatan'] ?? null,
+    'jumlah_sepatu' => $pesanan['jumlah'],
+    'ukuran_sepatu' => implode(', ', $pesanan['ukuran']),
+    'foto_sepatu' => null,
+    'metode_pengantaran' => $pengiriman,
+    'pin_lokasi' => null,
+    'total_biaya' => $pesanan['total'],
+    'status' => 'Menunggu Pembayaran',
+    'status_pembayaran' => 'menunggu_upload',
+]);
 
-        $list[] = $order;
+$request->session()->put('pesanan_sukses', $kode);
+$request->session()->forget('pesanan');
 
-        $request->session()->put('pesanan_list', $list);
-        $request->session()->put('pesanan_sukses', $kode);
+return redirect()->route('pesanan.berhasil');
 
-        $request->session()->forget('pesanan');
-
-        return redirect()->route('pesanan.berhasil');
     }
   
       /**
@@ -294,9 +311,8 @@ class PesananController extends Controller
     {
         $kode = $request->session()->get('pesanan_sukses');
 
-        $pesanan = $kode
-            ? $this->cariPesanan($request, $kode)
-            : null;
+        
+        $pesanan = Pesanan::where('nomor_pesanan', $kode)->first();
 
         if (! $pesanan) {
             return redirect()->route('pesanan.beranda');
@@ -312,11 +328,16 @@ class PesananController extends Controller
      */
     public function bayar(Request $request, string $kode)
     {
-        $pesanan = $this->cariPesanan($request, $kode);
+        $pesanan = Pesanan::where('nomor_pesanan', $kode)->first();
 
-        if (! $pesanan || ($pesanan['metode_bayar'] ?? '') !== 'transfer') {
-            return redirect()->route('pesanan.riwayat');
-        }
+        $pesanan = Pesanan::where('nomor_pesanan', $kode)
+    ->where('user_id', Auth::id())
+    ->firstOrFail();
+
+return view('pesanan.bayar', [
+    'pesanan' => $pesanan,
+    'rekening' => config('layanan.kontak.rekening', []),
+]);
 
         return view('pesanan.bayar', [
             'pesanan'  => $pesanan,
@@ -329,11 +350,12 @@ class PesananController extends Controller
      */
     public function bukti(Request $request, string $kode)
     {
-        $pesanan = $this->cariPesanan($request, $kode);
+        
+    $pesanan = Pesanan::where('nomor_pesanan', $kode)
+    ->where('user_id', Auth::id())
+    ->firstOrFail();
 
-        if (! $pesanan || ($pesanan['metode_bayar'] ?? '') !== 'transfer') {
-            return redirect()->route('pesanan.riwayat');
-        }
+return view('pesanan.bukti', compact('pesanan'));
 
         return view('pesanan.bukti', [
             'pesanan' => $pesanan,
@@ -344,41 +366,30 @@ class PesananController extends Controller
      * Proses Upload Bukti Pembayaran.
      */
     public function prosesBukti(Request $request, string $kode)
-    {
-        $pesanan = $this->cariPesanan($request, $kode);
+{
+    $request->validate([
+        'bukti' => [
+            'required',
+            'image',
+            'mimes:jpg,jpeg,png',
+            'max:5120',
+        ],
+    ]);
 
-        if (! $pesanan) {
-            return redirect()->route('pesanan.riwayat');
-        }
+    $path = $request->file('bukti')->store('bukti-pembayaran', 'public');
 
-        $request->validate([
-            'bukti' => [
-                'required',
-                'image',
-                'mimes:jpg,jpeg,png',
-                'max:5120',
-            ],
-        ]);
+    $pesanan = Pesanan::where('nomor_pesanan', $kode)->firstOrFail();
 
-        $path = $request->file('bukti')
-            ->store('bukti-pembayaran', 'public');
+    $pesanan->update([
+        'bukti_pembayaran' => $path,
+        'status_pembayaran' => 'menunggu_verifikasi',
+        'status' => 'Menunggu Verifikasi',
+    ]);
 
-        $this->ubahStatus(
-            $request,
-            $kode,
-            'Menunggu Verifikasi',
-            [
-                'bukti' => $path,
-            ]
-        );
+    $request->session()->put('pesanan_sukses', $pesanan->nomor_pesanan);
 
-        $request->session()->put(
-            'pesanan_sukses',
-            $pesanan['kode']
-        );
-
-        return redirect()->route('pesanan.bukti.berhasil');
-    }
+    return redirect()->route('pesanan.bukti.berhasil');
+}
 
     /**
      * Halaman bukti pembayaran berhasil dikirim.
@@ -387,9 +398,19 @@ class PesananController extends Controller
     {
         $kode = $request->session()->get('pesanan_sukses');
 
-        $pesanan = $kode
-            ? $this->cariPesanan($request, $kode)
-            : null;
+        $request->validate([
+    'bukti' => [
+        'required',
+        'image',
+        'mimes:jpg,jpeg,png',
+        'max:5120',
+    ],
+]);
+
+$path = $request->file('bukti')
+    ->store('bukti-pembayaran', 'public');
+
+        $pesanan = Pesanan::where('nomor_pesanan', $kode)->first();
 
         if (! $pesanan) {
             return redirect()->route('pesanan.riwayat');
@@ -405,7 +426,7 @@ class PesananController extends Controller
      */
     public function batalkan(Request $request, string $kode)
     {
-        $pesanan = $this->cariPesanan($request, $kode);
+        $pesanan = Pesanan::where('nomor_pesanan', $kode)->firstOrFail();
 
         if (! $pesanan) {
             return redirect()->route('pesanan.riwayat');
@@ -417,11 +438,14 @@ class PesananController extends Controller
                 ->with('info', 'Pesanan tidak dapat dibatalkan.');
         }
 
-        $this->ubahStatus($request, $kode, 'Dibatalkan');
 
-        return redirect()
-            ->route('pesanan.riwayat')
-            ->with('info', 'Pesanan berhasil dibatalkan.');
+$pesanan->update([
+    'status' => 'Dibatalkan',
+]);
+
+return redirect()
+    ->route('pesanan.riwayat')
+    ->with('info', 'Pesanan berhasil dibatalkan.');
     }
 
     /**
@@ -429,27 +453,22 @@ class PesananController extends Controller
      */
     public function riwayat(Request $request)
     {
-        return view('pesanan.riwayat', [
-            'riwayat' => $request->session()->get('pesanan_list', []),
-        ]);
+        $riwayat = Pesanan::where('user_id', Auth::id())->get();
+
+        return view('pesanan.riwayat', compact('riwayat'));
     }
 
     /**
      * Menampilkan nota pesanan.
      */
     public function nota(Request $request, string $kode)
-    {
-        $pesanan = $this->cariPesanan($request, $kode);
+{
+    $pesanan = Pesanan::where('nomor_pesanan', $kode)
+        ->where('user_id', Auth::id())
+        ->firstOrFail();
 
-        if (! $pesanan) {
-            abort(404);
-        }
-
-        return view('pesanan.nota', [
-            'pesanan' => $pesanan,
-        ]);
-    }
-
+    return view('pesanan.nota', compact('pesanan'));
+}
     /**
      * Halaman akun.
      */
@@ -502,51 +521,4 @@ class PesananController extends Controller
         $request->session()->put('user', array_merge($user, $data));
 
         return back()->with('sukses', 'Profil berhasil diperbarui.');
-    }
-
-    /**
-     * Mencari pesanan berdasarkan kode.
-     */
-    private function cariPesanan(Request $request, string $kode): ?array
-    {
-        $list = $request->session()->get('pesanan_list', []);
-
-        foreach ($list as $item) {
-            if (ltrim($item['kode'], '#') === ltrim($kode, '#')) {
-                return $item;
-            }
-        }
-
-        return null;
-    }
-
-    /**
-     * Mengubah status pesanan.
-     */
-    private function ubahStatus(
-        Request $request,
-        string $kode,
-        string $status,
-        array $tambahan = []
-    ): void {
-
-        $list = $request->session()->get('pesanan_list', []);
-
-        foreach ($list as &$item) {
-
-            if (ltrim($item['kode'], '#') === ltrim($kode, '#')) {
-
-                $item['status'] = $status;
-
-                foreach ($tambahan as $key => $value) {
-                    $item[$key] = $value;
-                }
-
-                break;
-            }
-        }
-
-        $request->session()->put('pesanan_list', $list);
-    }
-}
-    
+    }}

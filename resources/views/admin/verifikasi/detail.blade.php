@@ -28,15 +28,48 @@
         {{-- Kiri: Informasi pembayaran --}}
         <div class="{{ $labelCard }}">
             <p class="{{ $cardTitle }}">Informasi Pembayaran</p>
-            <div class="space-y-3 text-sm">
-                <div class="flex items-center justify-between"><p class="text-slate-500">No. Pesanan</p><p class="font-semibold text-slate-700">{{ $pesanan['kode'] }}</p></div>
-                <div class="flex items-center justify-between"><p class="text-slate-500">Nama Pelanggan</p><p class="font-medium text-slate-700">{{ $pesanan['nama'] }}</p></div>
-                <div class="flex items-center justify-between"><p class="text-slate-500">Metode Pembayaran</p><p class="font-medium text-slate-700">{{ ucfirst($pesanan['metode_bayar']) }}</p></div>
-                <div class="flex items-center justify-between"><p class="text-slate-500">Tanggal Transfer</p><p class="font-medium text-slate-700">{{ $pesanan['tanggal'] }}{{ $pesanan['waktu'] }}</p></div>
-                <div class="flex items-center justify-between border-t border-slate-100 pt-3"><p class="text-slate-500">Status</p><span class="inline-flex rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-700">{{ $pesanan['status'] }}</span></div>
-                <div class="flex items-center justify-between border-t border-slate-100 pt-3"><p class="font-semibold text-slate-700">Total Pembayaran</p><p class="text-lg font-bold text-[#1566AD]">Rp{{ number_format($pesanan['total'], 0, ',', '.') }}</p></div>
-            </div>
-        </div>
+
+<div class="space-y-3 text-sm">
+
+    <div class="flex items-center justify-between">
+        <p class="text-slate-500">No. Pesanan</p>
+        <p class="font-semibold text-slate-700">
+            {{ $pesanan->nomor_pesanan }}
+        </p>
+    </div>
+
+    <div class="flex items-center justify-between">
+        <p class="text-slate-500">Nama Pelanggan</p>
+        <p class="font-medium text-slate-700">
+            {{ $pesanan->nama }}
+        </p>
+    </div>
+
+    <div class="flex items-center justify-between">
+        <p class="text-slate-500">Metode Pengantaran</p>
+        <p class="font-medium text-slate-700">
+            {{ $pesanan->metode_pengantaran }}
+        </p>
+    </div>
+
+    <div class="flex items-center justify-between">
+        <p class="text-slate-500">Status Pembayaran</p>
+        <span class="inline-flex rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-700">
+            {{ $pesanan->status_pembayaran }}
+        </span>
+    </div>
+
+    <div class="flex items-center justify-between border-t border-slate-100 pt-3">
+        <p class="font-semibold text-slate-700">
+            Total Pembayaran
+        </p>
+
+        <p class="text-lg font-bold text-[#1566AD]">
+            Rp{{ number_format($pesanan->total_biaya, 0, ',', '.') }}
+        </p>
+    </div>
+
+</div>
 
         {{-- Kanan: Bukti pembayaran --}}
         <div class="{{ $labelCard }}">
@@ -58,28 +91,25 @@
     <p class="{{ $cardTitle }}">Tindakan Verifikasi</p>
     <div class="flex flex-col gap-3 sm:flex-row">
 
-   <form action="{{ route('admin.verifikasi.tolak', $pesanan['kode']) }}"
+   <form action="{{ route('admin.verifikasi.tolak', ['kode' => $pesanan->nomor_pesanan]) }}"
       method="POST"
       onsubmit="return confirm('Tolak pembayaran ini?')">
     @csrf
 
     <button type="submit" class="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-red-200 px-5 py-2.5 text-sm font-semibold text-red-500 hover:bg-red-50">
-        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="1.7" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
-        </svg>
-        Tolak Pembayaran
+        ...
     </button>
 </form>
 
-    <form action="{{ route('admin.verifikasi.terima', $pesanan['kode']) }}" method="POST" onsubmit="return confirm('Terima pembayaran ini?')">
-        @csrf
-        <button type="submit" class="inline-flex items-center justify-center gap-2 rounded-xl bg-green-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-green-700">
-            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="1.7" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
-            </svg>
-            Terima Pembayaran
-        </button>
-    </form>
+<form action="{{ route('admin.verifikasi.terima', ['kode' => $pesanan->nomor_pesanan]) }}"
+      method="POST"
+      onsubmit="return confirm('Terima pembayaran ini?')">
+    @csrf
+
+    <button type="submit" class="inline-flex items-center justify-center gap-2 rounded-xl bg-green-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-green-700">
+        ...
+    </button>
+</form>
 
 </div>
 </div>
