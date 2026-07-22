@@ -349,18 +349,15 @@ return view('pesanan.bayar', [
      * Halaman Upload Bukti Pembayaran.
      */
     public function bukti(Request $request, string $kode)
-    {
-        
+{
     $pesanan = Pesanan::where('nomor_pesanan', $kode)
-    ->where('user_id', Auth::id())
-    ->firstOrFail();
+        ->where('user_id', Auth::id())
+        ->firstOrFail();
 
-return view('pesanan.bukti', compact('pesanan'));
-
-        return view('pesanan.bukti', [
-            'pesanan' => $pesanan,
-        ]);
-    }
+    return view('pesanan.bukti', [
+        'pesanan' => $pesanan,
+    ]);
+}
 
     /**
      * Proses Upload Bukti Pembayaran.
