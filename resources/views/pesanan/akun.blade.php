@@ -66,13 +66,13 @@
             @if(Route::has('logout'))
                 <form method="POST" action="{{ route('logout') }}">
                     @csrf
-                    <button type="submit" class="inline-flex items-center gap-2 rounded-lg border border-red-200 px-5 py-2.5 text-sm font-semibold text-red-500 transition hover:bg-red-50">
-                        <x-icon name="arrow-right" class="h-4 w-4" /> Keluar
+                    <button type="submit" class="inline-flex items-center gap-2 rounded-lg bg-red-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-red-700">
+                        <x-icon name="arrow-right" class="h-4 w-4" /> Logout
                     </button>
                 </form>
             @else
-                <a href="{{ route('login') }}" class="inline-flex items-center gap-2 rounded-lg border border-red-200 px-5 py-2.5 text-sm font-semibold text-red-500 transition hover:bg-red-50">
-                    <x-icon name="arrow-right" class="h-4 w-4" /> Keluar
+                <a href="{{ route('login') }}" class="inline-flex items-center gap-2 rounded-lg bg-red-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-red-700">
+                    <x-icon name="arrow-right" class="h-4 w-4" /> Logout
                 </a>
             @endif
         </div>
