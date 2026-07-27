@@ -4,10 +4,11 @@
 
 @section('content')
 @php
-    $petaHarga = collect($layanan)->mapWithKeys(function ($i, $slug) {
+$petaHarga = collect($layanan)->mapWithKeys(function ($i, $slug) {
     return [$slug => [
-        'nama'  => $i['nama'],
-        'harga' => $i['harga'],
+        'nama'   => $i['nama'],
+        'harga'  => $i['harga'],
+        'gambar' => $i['gambar'],
     ]];
 });
 
@@ -57,9 +58,18 @@ $terpilih = $layanan[$slugTerpilih];
                                 <h2 class="text-base font-bold text-[#1E293B]">Ringkasan Layanan</h2>
                             </div>
                             <div class="p-5">
-
-                                    <x-shoe-thumb :slug="\Illuminate\Support\Str::slug($terpilih['nama'])"
+                                @if(!empty($terpilih['gambar']))
+                                <img
+                                    id="ringkas-gambar"
+                                    src="{{ asset('storage/'.$terpilih['gambar']) }}"
+                                    alt="{{ $terpilih['nama'] }}"
+                                    class="aspect-[4/3] w-full rounded-xl object-cover">
+                                @else
+                                <x-shoe-thumb
+                                    id="ringkas-gambar"
+                                    :slug="\Illuminate\Support\Str::slug($terpilih['nama'])"
                                     class="aspect-[4/3] w-full"/>
+                                @endif
                                 </div>
                                 <p class="mt-4 text-sm font-semibold text-[#1566AD]" id="ringkas-nama">{{ $terpilih['nama'] }}</p>
                                 <p class="mt-1 text-2xl font-bold text-[#1E293B]" id="ringkas-harga">{{ \App\Http\Controllers\PesananController::rupiah($terpilih['harga']) }}</p>
@@ -153,7 +163,7 @@ $terpilih = $layanan[$slugTerpilih];
                                 <x-icon name="upload" class="h-8 w-8 text-[#1E7BC8]" />
                                 <span class="mt-3 text-sm font-medium text-slate-600">Klik untuk upload foto atau drag &amp; drop file di sini</span>
                                 <span class="mt-1 text-xs text-slate-400">JPG, PNG Maksimal 5 MB</span>
-                                <input type="file" id="foto" name="foto[]" accept="image/png,image/jpeg" multiple class="hidden">
+                                <input type="file" id="foto" name="foto" accept="image/png,image/jpeg" class="hidden">
                             </label>
 
                             <div class="rounded-xl bg-[#EAF3FC] p-4">
@@ -195,6 +205,7 @@ $terpilih = $layanan[$slugTerpilih];
         const ringkasNama   = document.getElementById('ringkas-nama');
         const ringkasHarga  = document.getElementById('ringkas-harga');
         const detailLayanan = document.getElementById('detail-layanan');
+        const ringkasGambar = document.getElementById('ringkas-gambar');
         const inputJumlah   = document.getElementById('jumlah');
         const wadahUkuran   = document.getElementById('wadah-ukuran');
 
@@ -206,9 +217,12 @@ $terpilih = $layanan[$slugTerpilih];
             ringkasNama.textContent  = data.nama;
             ringkasHarga.textContent = rupiah(data.harga);
             detailLayanan.value = data.nama;
+            if (ringkasGambar && data.gambar) {
+                ringkasGambar.src = "{{ asset('storage') }}/" + data.gambar;
+                ringkasGambar.alt = data.nama;
+            }
         }
-        inputLayanan.value =
-        pilihLayanan.value;
+        inputLayanan.value = pilihLayanan.value;
         syncLayanan();
 
         pilihLayanan.addEventListener('change', syncLayanan);

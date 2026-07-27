@@ -203,7 +203,7 @@ public function dashboard()
     {
 
         $request->validate([
-            'status' => ['required', 'in:Menunggu Pembayaran,Menunggu Verifikasi,Diproses,Dicuci,Dikeringkan,Siap Diambil,Selesai,Dibatalkan,Ditolak'],
+            'status'=>'required'
         ]);
 
 
@@ -263,11 +263,11 @@ public function dashboard()
 
         $data=$request->validate([
 
-            'nama_layanan'=>'required|string|max:150',
-            'harga'=>'required|integer|min:0',
-            'estimasi'=>'required|string|max:50',
-            'status'=>'required|in:aktif,nonaktif',
-            'deskripsi'=>'nullable|string',
+            'nama_layanan'=>'required',
+            'harga'=>'required|integer',
+            'estimasi'=>'required',
+            'status'=>'required',
+            'deskripsi'=>'nullable',
             'gambar'=>'nullable|image|max:2048'
 
         ]);
@@ -317,11 +317,11 @@ public function dashboard()
 
         $data=$request->validate([
 
-            'nama_layanan'=>'required|string|max:150',
-            'harga'=>'required|integer|min:0',
-            'estimasi'=>'required|string|max:50',
-            'status'=>'required|in:aktif,nonaktif',
-            'deskripsi'=>'nullable|string',
+            'nama_layanan'=>'required',
+            'harga'=>'required|integer',
+            'estimasi'=>'required',
+            'status'=>'required',
+            'deskripsi'=>'nullable',
             'gambar'=>'nullable|image|max:2048'
 
         ]);
@@ -329,6 +329,10 @@ public function dashboard()
 
 
         if($request->hasFile('gambar')){
+
+            if ($layanan->gambar) {
+                Storage::disk('public')->delete($layanan->gambar);
+            }
 
             $data['gambar']=$request
                 ->file('gambar')

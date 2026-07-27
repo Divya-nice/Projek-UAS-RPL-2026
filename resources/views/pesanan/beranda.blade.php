@@ -49,7 +49,8 @@
                         :slug="Str::slug($item['nama'])"
                         :nama="$item['nama']"
                         :harga="\App\Http\Controllers\PesananController::rupiah($item['harga'])"
-                        :deskripsi="$item['deskripsi']" />
+                        :deskripsi="$item['deskripsi']"
+                        :gambar="$item['gambar']" />
 @endforeach
             </div>
         </div>

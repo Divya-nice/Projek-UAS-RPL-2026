@@ -17,9 +17,27 @@ class PesananController extends Controller
      *
      * @return array<string, mixed>
      */
-    private function layanan(): array
+
+    private function layanan()
     {
-        return config('layanan.layanan', []);
+        return Layanan::where('status', 'aktif')
+            ->orderBy('nama_layanan')
+            ->get()
+            ->mapWithKeys(function ($item) {
+
+                return [
+                    Str::slug($item->nama_layanan) => [
+                        'id'        => $item->id,
+                        'nama'      => $item->nama_layanan,
+                        'harga'     => $item->harga,
+                        'estimasi'  => $item->estimasi,
+                        'deskripsi' => $item->deskripsi,
+                        'gambar'    => $item->gambar,
+                    ]
+                ];
+
+            })
+            ->toArray();
     }
 
     /**
@@ -35,16 +53,9 @@ class PesananController extends Controller
      */
     public function beranda()
     {
-        $semua = $this->layanan();
+        $populer = $this->layanan();
 
-        $populer = collect($semua)
-            ->only([
-                'deep-cleaning-regular',
-                'one-day-service',
-                'repaint',
-                'leather-care',
-            ])
-            ->all();
+        $populer = array_slice($populer,0,4,true);
 
         return view('pesanan.beranda', [
             'populer'    => $populer,
@@ -101,11 +112,13 @@ class PesananController extends Controller
             'ukuran'   => ['required', 'array', 'min:1'],
             'ukuran.*' => ['nullable', 'string', 'max:10'],
             'catatan'  => ['nullable', 'string', 'max:500'],
+            'foto' => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:5120'],
         ], [], [
             'telepon' => 'nomor telepon',
         ]);
 
         $item = $layanan[$data['layanan']];
+        $pesananId = $item['id'];
 
         $subtotal = $item['harga'] * (int) $data['jumlah'];
 
@@ -114,6 +127,7 @@ class PesananController extends Controller
         $pesanan = array_merge(
             $data,
             [
+                'layanan_id'    => $pesananId,
                 'layanan_nama'  => $item['nama'],
                 'layanan_harga' => $item['harga'],
                 'estimasi'      => $item['estimasi'],
@@ -126,6 +140,10 @@ class PesananController extends Controller
                 'subtotal'      => $subtotal,
             ]
         );
+
+        if ($request->hasFile('foto')) {
+            $pesanan['foto_sepatu'] = $request->file('foto')->store('foto-sepatu', 'public');
+        }
 
         $request->session()->put('pesanan', $pesanan);
 
@@ -256,14 +274,7 @@ class PesananController extends Controller
         // dikelola terpisah oleh admin. Untuk menjaga relasi layanan_id
         // tetap valid tanpa memaksa admin menyamakan nama persis, kita
         // cari-atau-buat baris layanan yang sesuai berdasarkan nama.
-        $layanan = Layanan::firstOrCreate(
-            ['nama_layanan' => $pesanan['layanan_nama']],
-            [
-                'harga'    => $pesanan['layanan_harga'],
-                'estimasi' => $pesanan['estimasi'] ?? null,
-                'status'   => 'aktif',
-            ]
-        );
+        $layanan = Layanan::findOrFail($pesanan['layanan_id']);
 
         $pesananBaru = Pesanan::create([
             'user_id'            => Auth::id(),
@@ -275,7 +286,7 @@ class PesananController extends Controller
             'wilayah'            => $pesanan['kecamatan'] ?? null,
             'jumlah_sepatu'      => $pesanan['jumlah'],
             'ukuran_sepatu'      => implode(', ', $pesanan['ukuran']),
-            'foto_sepatu'        => null,
+            'foto_sepatu'        => $pesanan['foto_sepatu'] ?? null,
             'metode_pengantaran' => $pengiriman,
             'pin_lokasi'         => null,
             'total_biaya'        => $pesanan['total'],

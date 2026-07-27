@@ -42,9 +42,9 @@
                         <h2 class="text-base font-bold text-[#1E293B]">Detail Pesanan</h2>
                     </div>
                     <dl class="mt-4 space-y-3 text-sm">
-                        <div class="flex justify-between gap-4"><dt class="text-slate-500">Layanan</dt><dd class="text-right font-medium text-slate-700">{{ $pesanan['layanan_nama'] }}</dd></div>
-                        <div class="flex justify-between gap-4"><dt class="text-slate-500">Estimasi</dt><dd class="text-right font-medium text-slate-700">{{ $pesanan['estimasi'] }}</dd></div>
-                        <div class="flex justify-between gap-4"><dt class="text-slate-500">Jumlah</dt><dd class="text-right font-medium text-slate-700">{{ $pesanan['jumlah'] }} pasang</dd></div>
+                        <div class="flex justify-between gap-4"><dt class="text-slate-500">Layanan</dt><dd class="text-right font-medium text-slate-700">{{ $pesanan['layanan_nama'] ?? '-'}}</dd></div>
+                        <div class="flex justify-between gap-4"><dt class="text-slate-500">Estimasi</dt><dd class="text-right font-medium text-slate-700">{{ $pesanan['estimasi']?? '-'}}</dd></div>
+                        <div class="flex justify-between gap-4"><dt class="text-slate-500">Jumlah</dt><dd class="text-right font-medium text-slate-700">{{ $pesanan['jumlah'] ?? '-'}} pasang</dd></div>
                         @if(! empty($pesanan['ukuran']))
                             <div class="flex justify-between gap-4"><dt class="text-slate-500">Ukuran</dt><dd class="text-right font-medium text-slate-700">{{ implode(', ', $pesanan['ukuran']) }}</dd></div>
                         @endif
@@ -81,7 +81,7 @@
                     <div class="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-100">
                         <h2 class="text-base font-bold text-[#1E293B]">Rincian Biaya</h2>
                         <dl class="mt-4 space-y-3 text-sm">
-                            <div class="flex justify-between"><dt class="text-slate-500">Subtotal ({{ $pesanan['jumlah'] }}x)</dt><dd class="font-medium text-slate-700">{{ $rp($pesanan['subtotal']) }}</dd></div>
+                            <div class="flex justify-between"><dt class="text-slate-500">Subtotal ({{ $pesanan['jumlah'] }}x)</dt><dd class="font-medium text-slate-700">{{ $rp($pesanan['subtotal'])}}</dd></div>
                             <div class="flex justify-between"><dt class="text-slate-500">Ongkos Jemput</dt><dd class="font-medium text-slate-700">{{ $rp($pesanan['ongkos_jemput'] ?? 0) }}</dd></div>
                             <div class="mt-2 flex justify-between border-t border-dashed border-slate-200 pt-3">
                                 <dt class="text-base font-bold text-[#1E293B]">Total</dt>

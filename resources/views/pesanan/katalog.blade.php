@@ -43,6 +43,7 @@
                         :harga="\App\Http\Controllers\PesananController::rupiah($item['harga'])"
                         :estimasi="$item['estimasi']"
                         :deskripsi="$item['deskripsi']"
+                        :gambar="$item['gambar']"
                     />
 @endforeach
             </div>

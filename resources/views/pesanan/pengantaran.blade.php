@@ -26,6 +26,17 @@
         {{-- Stepper --}}
         <div class="mt-8">
             <x-step-indicator :current="2" />
+            @if(session('info'))
+                <div class="mt-6 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-700">
+                    {{ session('info') }}
+                </div>
+            @endif
+
+            @if(session('success'))
+                <div class="mt-6 rounded-xl border border-green-200 bg-green-50 p-4 text-sm text-green-700">
+                    {{ session('success') }}
+            </div>
+            @endif
         </div>
 
         @if($errors->any())
@@ -160,7 +171,7 @@
         let petaTimer;
 
         function hitungOngkir() {
-            const opt = kecamatan.options[kecamatan.selectedIndex];
+            const opt = kecamatan.selectedIndex >= 0     ? kecamatan.options[kecamatan.selectedIndex] : null;
             labelOngkir.textContent = rupiah(opt ? opt.dataset.ongkir : 0);
         }
 
@@ -173,7 +184,9 @@
         }
 
         function syncMetode() {
-            const metode = document.querySelector('input[name=metode]:checked').value;
+            const metode = document.querySelector('input[name="metode"]:checked');
+            if (!checked) return;
+            const metode = checked.value;
             document.querySelectorAll('.metode-opsi').forEach((label) => {
                 const dipilih = label.querySelector('input').checked;
                 label.classList.toggle('border-[#1E7BC8]', dipilih);
@@ -189,6 +202,20 @@
         }
 
         document.querySelectorAll('input[name=metode]').forEach((r) => r.addEventListener('change', syncMetode));
+        if (kecamatan) {
+            kecamatan.addEventListener('change', () => {
+                hitungOngkir();
+                updatePeta();
+            });
+        }
+
+        if (alamatJemput) {
+            alamatJemput.addEventListener('input', () => {
+                clearTimeout(petaTimer);
+                petaTimer = setTimeout(updatePeta, 700);
+            });
+        }
+
         kecamatan.addEventListener('change', () => { hitungOngkir(); updatePeta(); });
         alamatJemput.addEventListener('input', () => {
             clearTimeout(petaTimer);
@@ -198,6 +225,10 @@
         syncMetode();
         hitungOngkir();
         updatePeta();
+
+        if (alamatJemput.value.trim() !== '') {
+            updatePeta();
+        }
     })();
 </script>
 @endpush
