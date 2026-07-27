@@ -21,38 +21,53 @@
         <p class="mt-1 text-slate-500">{{ $isEdit ? 'Perbarui informasi layanan yang sudah ada' : 'Tambahkan layanan cuci sepatu baru' }}</p>
     </div>
 
-    <form action="{{ $isEdit ? route('admin.layanan.update') : route('admin.layanan.store') }}" method="POST" enctype="multipart/form-data" class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-        @csrf
+    <form action="{{ $isEdit ? route('admin.layanan.update', $layanan->id) : route('admin.layanan.store') }}"
+      method="POST"
+      enctype="multipart/form-data"
+      class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+
+    @csrf
+
+    @if ($isEdit)
+        @method('PUT')
+    @endif
 
         <div class="space-y-5">
             <div>
                 <label class="mb-1.5 block text-sm font-medium text-slate-700">Nama Layanan</label>
-                <input type="text" name="nama" value="{{ $isEdit ? 'Deep Cleaning' : '' }}" placeholder="Contoh: Deep Cleaning" class="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm text-slate-700 placeholder-slate-400 focus:border-[#1E7BC8] focus:outline-none focus:ring-2 focus:ring-[#1E7BC8]/20" required />
+                <input type="text" name="nama_layanan" value="{{ old('nama_layanan', $layanan->nama_layanan ?? '') }}" placeholder="Contoh: Deep Cleaning" class="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm text-slate-700 placeholder-slate-400 focus:border-[#1E7BC8] focus:outline-none focus:ring-2 focus:ring-[#1E7BC8]/20" required />
             </div>
 
             <div class="grid gap-5 sm:grid-cols-2">
                 <div>
                     <label class="mb-1.5 block text-sm font-medium text-slate-700">Harga (Rp)</label>
-                    <input type="number" name="harga" value="{{ $isEdit ? '45000' : '' }}" placeholder="45000" class="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm text-slate-700 placeholder-slate-400 focus:border-[#1E7BC8] focus:outline-none focus:ring-2 focus:ring-[#1E7BC8]/20" required />
+                    <input type="number" name="harga" value="{{ old('harga', $layanan->harga ?? '') }}" placeholder="45000" class="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm text-slate-700 placeholder-slate-400 focus:border-[#1E7BC8] focus:outline-none focus:ring-2 focus:ring-[#1E7BC8]/20" required />
                 </div>
                 <div>
                     <label class="mb-1.5 block text-sm font-medium text-slate-700">Estimasi Pengerjaan</label>
-                    <input type="text" name="estimasi" value="{{ $isEdit ? '3 Hari' : '' }}" placeholder="Contoh: 3 Hari" class="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm text-slate-700 placeholder-slate-400 focus:border-[#1E7BC8] focus:outline-none focus:ring-2 focus:ring-[#1E7BC8]/20" required />
+                    <input type="text" name="estimasi" value="{{ old('estimasi', $layanan->estimasi ?? '') }}" placeholder="Contoh: 3 Hari" class="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm text-slate-700 placeholder-slate-400 focus:border-[#1E7BC8] focus:outline-none focus:ring-2 focus:ring-[#1E7BC8]/20" required />
                 </div>
             </div>
 
             <div>
                 <label class="mb-1.5 block text-sm font-medium text-slate-700">Status</label>
-                <select name="status" class="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm text-slate-700 focus:border-[#1E7BC8] focus:outline-none focus:ring-2 focus:ring-[#1E7BC8]/20">
-                    <option value="aktif">Aktif</option>
-                    <option value="nonaktif">Nonaktif</option>
-                </select>
+<select name="status" class="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm text-slate-700 focus:border-[#1E7BC8] focus:outline-none focus:ring-2 focus:ring-[#1E7BC8]/20">
+    <option value="aktif" {{ old('status', $layanan->status ?? 'aktif') === 'aktif' ? 'selected' : '' }}>
+        Aktif
+    </option>
+
+    <option value="nonaktif" {{ old('status', $layanan->status ?? '') === 'nonaktif' ? 'selected' : '' }}>
+        Nonaktif
+    </option>
+</select>
             </div>
 
             <div>
                 <label class="mb-1.5 block text-sm font-medium text-slate-700">Deskripsi Layanan</label>
-                <textarea name="deskripsi" rows="4" placeholder="Jelaskan detail layanan..." class="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm text-slate-700 placeholder-slate-400 focus:border-[#1E7BC8] focus:outline-none focus:ring-2 focus:ring-[#1E7BC8]/20">{{ $isEdit ? 'Pembersihan menyeluruh untuk sepatu yang sangat kotor.' : '' }}</textarea>
-            </div>
+                <textarea name="deskripsi"
+          rows="4"
+          placeholder="Jelaskan detail layanan..."
+          class="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm text-slate-700 placeholder-slate-400 focus:border-[#1E7BC8] focus:outline-none focus:ring-2 focus:ring-[#1E7BC8]/20">{{ old('deskripsi', $layanan->deskripsi ?? '') }}</textarea>
 
             <div>
                 <label class="mb-1.5 block text-sm font-medium text-slate-700">Gambar Layanan</label>

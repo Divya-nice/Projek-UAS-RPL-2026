@@ -14,6 +14,8 @@ class Layanan extends Model
         'harga',
         'estimasi',
         'deskripsi',
+        'status',
+        'gambar',
     ];
 
     public function pesanans()

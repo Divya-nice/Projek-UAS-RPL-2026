@@ -3,17 +3,7 @@
 @section('title', 'Laporan Pendapatan')
 
 @section('content')
-@php
-    $transaksi = [
-        ['no' => '#ORD-9821', 'tgl' => '28 Mei 2024', 'nama' => 'Budi Santoso', 'layanan' => 'Deep Cleaning',    'bayar' => 'Transfer Bank', 'total' => 'Rp45.000'],
-        ['no' => '#ORD-9820', 'tgl' => '28 Mei 2024', 'nama' => 'Siti Aminah',  'layanan' => 'Unyellowing',      'bayar' => 'E-Wallet',      'total' => 'Rp60.000'],
-        ['no' => '#ORD-9819', 'tgl' => '27 Mei 2024', 'nama' => 'Rian Pratama', 'layanan' => 'Fast Cleaning',    'bayar' => 'Tunai',         'total' => 'Rp25.000'],
-        ['no' => '#ORD-9818', 'tgl' => '27 Mei 2024', 'nama' => 'Andi Wijaya',  'layanan' => 'Repaint Standard', 'bayar' => 'Transfer Bank', 'total' => 'Rp120.000'],
-        ['no' => '#ORD-9817', 'tgl' => '26 Mei 2024', 'nama' => 'Dewi Lestari', 'layanan' => 'Deep Cleaning',    'bayar' => 'E-Wallet',      'total' => 'Rp45.000'],
-        ['no' => '#ORD-9816', 'tgl' => '26 Mei 2024', 'nama' => 'Rudi Hartono', 'layanan' => 'Reglue Sepatu',    'bayar' => 'Tunai',         'total' => 'Rp60.000'],
-        ['no' => '#ORD-9815', 'tgl' => '25 Mei 2024', 'nama' => 'Maya Sari',    'layanan' => 'Unyellowing',      'bayar' => 'Transfer Bank', 'total' => 'Rp75.000'],
-    ];
-@endphp
+
 <div class="mx-auto max-w-6xl space-y-6">
 
     {{-- Judul + kontrol --}}
@@ -25,7 +15,11 @@
         <div class="flex flex-wrap items-center gap-3">
             <button type="button" class="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-50">
                 <svg class="h-5 w-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke-width="1.7" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" /></svg>
-                01 Okt 2023 - 31 Okt 2023
+                {{ $transaksi->count() > 0
+    ? $transaksi->first()->created_at->format('d M Y') . ' - ' .
+      $transaksi->last()->created_at->format('d M Y')
+    : 'Belum ada transaksi'
+}}
                 <svg class="h-4 w-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" /></svg>
             </button>
         </div>
@@ -39,11 +33,17 @@
                 <span class="flex h-11 w-11 items-center justify-center rounded-xl bg-[#EAF3FC] text-[#1566AD]">
                     <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke-width="1.6" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3M3.75 19.5h16.5A2.25 2.25 0 0 0 22.5 17.25V6.75A2.25 2.25 0 0 0 20.25 4.5H3.75A2.25 2.25 0 0 0 1.5 6.75v10.5A2.25 2.25 0 0 0 3.75 19.5Z" /></svg>
                 </span>
-                <span class="rounded-full bg-green-50 px-2.5 py-1 text-xs font-semibold text-green-600">+12.5%</span>
+                <span class="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-500">
+                Semua waktu
+</span>
             </div>
             <p class="mt-4 text-sm text-slate-500">Total Pendapatan</p>
-            <p class="mt-1 text-2xl font-bold text-slate-900">Rp3.040.000</p>
-            <p class="mt-1 text-xs text-slate-400">128 transaksi selesai</p>
+           <p class="mt-1 text-2xl font-bold text-slate-900">
+    Rp{{ number_format($totalPendapatan, 0, ',', '.') }}
+</p>
+            <p class="mt-1 text-xs text-slate-400">
+    {{ $transaksi->count() }} transaksi selesai
+</p>
         </div>
         {{-- Total Transaksi --}}
         <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
@@ -51,7 +51,9 @@
                 <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke-width="1.6" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 0 0 2.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 0 0-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75 2.25 2.25 0 0 0-.1-.664m-5.8 0A2.251 2.251 0 0 1 13.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25Z" /></svg>
             </span>
             <p class="mt-4 text-sm text-slate-500">Total Transaksi</p>
-            <p class="mt-1 text-2xl font-bold text-slate-900">128</p>
+            <p class="mt-1 text-2xl font-bold text-slate-900">
+    {{ $transaksi->count() }}
+</p>
             <p class="mt-1 text-xs text-slate-400">Transaksi selesai</p>
         </div>
         {{-- Rata-rata Nilai Transaksi --}}
@@ -60,7 +62,16 @@
                 <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke-width="1.6" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625ZM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125Z" /></svg>
             </span>
             <p class="mt-4 text-sm text-slate-500">Rata-rata Nilai Transaksi</p>
-            <p class="mt-1 text-2xl font-bold text-slate-900">Rp23.750</p>
+            <p class="mt-1 text-2xl font-bold text-slate-900">
+    Rp{{ number_format(
+        $transaksi->count() > 0
+            ? $totalPendapatan / $transaksi->count()
+            : 0,
+        0,
+        ',',
+        '.'
+    ) }}
+</p>
             <p class="mt-1 text-xs text-slate-400">Per transaksi</p>
         </div>
     </div>
@@ -129,17 +140,54 @@
 
             {{-- Ringkasan Periode --}}
             <div class="rounded-xl bg-slate-50 p-5">
-                <p class="text-sm font-semibold text-slate-700">Ringkasan Periode</p>
-                <div class="mt-4 space-y-3 text-sm">
-                    <div class="flex items-center justify-between"><span class="text-slate-500">Total Pendapatan</span><span class="font-semibold text-slate-800">Rp3.040.000</span></div>
-                    <div class="flex items-center justify-between"><span class="text-slate-500">Total Transaksi</span><span class="font-semibold text-slate-800">128</span></div>
-                    <div class="flex items-center justify-between"><span class="text-slate-500">Rata-rata</span><span class="font-semibold text-slate-800">Rp23.750</span></div>
-                    <div class="flex items-center justify-between"><span class="text-slate-500">Total Layanan Terjual</span><span class="font-semibold text-slate-800">156 Item</span></div>
-                </div>
+    <p class="text-sm font-semibold text-slate-700">
+        Ringkasan Periode
+    </p>
+
+    {{-- TEMPEL KODE BARU DI SINI --}}
+    <div class="mt-4 space-y-3 text-sm">
+
+        <div class="flex items-center justify-between gap-3">
+            <span class="text-slate-500">Total Pendapatan</span>
+            <span class="shrink-0 font-semibold text-slate-800">
+                Rp{{ number_format($totalPendapatan, 0, ',', '.') }}
+            </span>
+        </div>
+
+        <div class="flex items-center justify-between gap-3">
+            <span class="text-slate-500">Total Transaksi</span>
+            <span class="shrink-0 font-semibold text-slate-800">
+                {{ $totalTransaksi }}
+            </span>
+        </div>
+
+        <div class="flex items-center justify-between gap-3">
+            <span class="text-slate-500">Rata-rata</span>
+            <span class="shrink-0 font-semibold text-slate-800">
+                Rp{{ number_format($rataRataTransaksi, 0, ',', '.') }}
+            </span>
+        </div>
+
+        <div class="flex items-center justify-between gap-3">
+            <span class="text-slate-500">Total Layanan Terjual</span>
+            <span class="shrink-0 font-semibold text-slate-800">
+                {{ $totalLayananTerjual }} Item
+            </span>
+        </div>
+
+    </div>
+
+
+
                 <div class="mt-4 border-t border-slate-200 pt-4">
                     <p class="flex items-center gap-2 text-xs font-medium text-slate-400"><span class="h-2 w-2 rounded-full bg-[#1E7BC8]"></span> Layanan Terlaris</p>
-                    <p class="mt-1 font-semibold text-slate-800">Cuci Sneaker Express</p>
-                    <p class="text-sm text-slate-500">42 Transaksi (32%)</p>
+                    <p class="mt-1 font-semibold text-slate-800">
+    {{ $layananTerlaris?->first()?->layanan?->nama_layanan ?? 'Belum ada data' }}
+</p>
+
+<p class="text-sm text-slate-500">
+    {{ $layananTerlaris?->count() ?? 0 }} Transaksi
+</p>
                 </div>
             </div>
         </div>
@@ -176,17 +224,46 @@
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100">
-                    @foreach ($transaksi as $t)
-                    <tr class="hover:bg-slate-50/70">
-                        <td class="px-5 py-4 font-semibold text-[#1E7BC8]">{{ $t['no'] }}</td>
-                        <td class="px-5 py-4 text-slate-500">{{ $t['tgl'] }}</td>
-                        <td class="px-5 py-4 font-medium text-slate-700">{{ $t['nama'] }}</td>
-                        <td class="px-5 py-4 text-slate-500">{{ $t['layanan'] }}</td>
-                        <td class="px-5 py-4 text-slate-500">{{ $t['bayar'] }}</td>
-                        <td class="px-5 py-4 font-semibold text-slate-700">{{ $t['total'] }}</td>
-                        <td class="px-5 py-4 text-center"><span class="inline-flex rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-700">Selesai</span></td>
-                    </tr>
-                    @endforeach
+
+    @foreach ($transaksi as $t)
+
+        <tr class="hover:bg-slate-50/70">
+
+            <td class="px-5 py-4 font-semibold text-[#1E7BC8]">
+                #{{ $t->nomor_pesanan }}
+            </td>
+
+            <td class="px-5 py-4 text-slate-500">
+                {{ $t->created_at->format('d M Y') }}
+            </td>
+
+            <td class="px-5 py-4 font-medium text-slate-700">
+                {{ $t->user->name }}
+            </td>
+
+            <td class="px-5 py-4 text-slate-500">
+                {{ $t->layanan->nama_layanan }}
+            </td>
+
+            <td class="px-5 py-4 text-slate-500">
+                {{ $t->metode_pembayaran ?? '-' }}
+            </td>
+
+            <td class="px-5 py-4 font-semibold text-slate-700">
+                Rp{{ number_format($t->total_biaya, 0, ',', '.') }}
+            </td>
+
+            <td class="px-5 py-4 text-center">
+                <span class="inline-flex rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-700">
+                    Selesai
+                </span>
+            </td>
+
+        </tr>
+
+    @endforeach
+
+</tbody>
                 </tbody>
             </table>
         </div>

@@ -21,6 +21,8 @@ class Pesanan extends Model
         'metode_pengantaran',
         'pin_lokasi',
         'status',
+        'bukti_pembayaran',
+        'status_pembayaran',
     ];
 
 

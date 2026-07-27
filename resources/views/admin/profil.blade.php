@@ -11,14 +11,22 @@
         <p class="mt-1 text-slate-500">Perbarui informasi akun pemilik usaha</p>
     </div>
 
-    <form action="{{ route('admin.profil.update') }}" method="POST" enctype="multipart/form-data" class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+    <form action="{{ route('admin.profile.update') }}" method="POST" enctype="multipart/form-data" class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
         @csrf
 
         {{-- Foto profil --}}
         <div class="flex flex-col items-center gap-3 border-b border-slate-100 pb-6 sm:flex-row sm:gap-5">
-            <span class="flex h-20 w-20 items-center justify-center rounded-full bg-slate-800 text-white">
-                <svg class="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke-width="1.6" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" /></svg>
-            </span>
+           @if(Auth::user()->foto)
+    <img src="{{ asset('storage/' . Auth::user()->foto) }}"
+         class="h-20 w-20 rounded-full object-cover"
+         alt="Foto Profil">
+@else
+    <span class="flex h-20 w-20 items-center justify-center rounded-full bg-slate-800 text-white">
+        <svg class="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke-width="1.6" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"/>
+        </svg>
+    </span>
+@endif
             <div class="text-center sm:text-left">
                 <p class="font-semibold text-slate-800">Foto Profil</p>
                 <p class="text-sm text-slate-400">Format JPG atau PNG, maks. 2MB</p>
@@ -33,15 +41,15 @@
         <div class="mt-6 space-y-5">
             <div>
                 <label class="mb-1.5 block text-sm font-medium text-slate-700">Nama Lengkap</label>
-                <input type="text" name="nama" value="Bapak Rudi" class="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm text-slate-700 focus:border-[#1E7BC8] focus:outline-none focus:ring-2 focus:ring-[#1E7BC8]/20" required />
+                <input type="text" name="name" value="{{ Auth::user()->name }}" class="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm text-slate-700 focus:border-[#1E7BC8] focus:outline-none focus:ring-2 focus:ring-[#1E7BC8]/20" required />
             </div>
             <div>
                 <label class="mb-1.5 block text-sm font-medium text-slate-700">Email</label>
-                <input type="email" name="email" value="admin@cucisepatuptk.id" class="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm text-slate-700 focus:border-[#1E7BC8] focus:outline-none focus:ring-2 focus:ring-[#1E7BC8]/20" required />
+                <input type="email" name="email" value="{{ Auth::user()->email }}" class="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm text-slate-700 focus:border-[#1E7BC8] focus:outline-none focus:ring-2 focus:ring-[#1E7BC8]/20" required />
             </div>
             <div>
                 <label class="mb-1.5 block text-sm font-medium text-slate-700">No. Telepon</label>
-                <input type="text" name="telepon" value="0812-3456-7890" class="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm text-slate-700 focus:border-[#1E7BC8] focus:outline-none focus:ring-2 focus:ring-[#1E7BC8]/20" />
+                <input type="text" name="phone" value="{{ Auth::user()->phone }}" class="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm text-slate-700 focus:border-[#1E7BC8] focus:outline-none focus:ring-2 focus:ring-[#1E7BC8]/20" />
             </div>
             <div>
                 <label class="mb-1.5 block text-sm font-medium text-slate-700">Alamat Usaha</label>

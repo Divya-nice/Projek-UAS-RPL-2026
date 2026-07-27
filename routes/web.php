@@ -3,6 +3,8 @@
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\PesananController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\AdminController;
+
 
 // Halaman awal -> login
 Route::redirect('/', '/login');
@@ -59,61 +61,91 @@ Route::middleware('auth')->controller(PesananController::class)->group(function 
     Route::put('/akun', 'updateAkun')->name('akun.update');
 });
 
+// Login Admin
+Route::get('/admin/login', function () {
+    return view('auth.login-admin');
+})->name('admin.login');
+
+Route::post('/admin/login', [AuthController::class, 'adminLogin'])
+    ->name('admin.login.submit');
+
+
 /*
 |--------------------------------------------------------------------------
 | Admin (UI Only)
 |--------------------------------------------------------------------------
 */
-Route::middleware('auth')->prefix('admin')->group(function () {
-
-    Route::view('/dashboard', 'admin.dashboard')->name('admin.dashboard');
-
+Route::get('/dashboard', [AdminController::class, 'dashboard'])
+    ->name('admin.dashboard');
+Route::prefix('admin')->group(function () {
     // Kelola Pesanan
-    Route::view('/pesanan', 'admin.pesanan.index')->name('admin.pesanan');
-    Route::view('/pesanan/detail', 'admin.pesanan.detail')->name('admin.pesanan.detail');
-    Route::post('/pesanan/update-status', function () {
-        return back()->with('status', 'Status pesanan berhasil diperbarui.');
-    })->name('admin.pesanan.update');
+Route::get('/pesanan', [AdminController::class, 'pesanan'])
+    ->name('admin.pesanan');
 
-    // Kelola Layanan
-    Route::view('/layanan', 'admin.layanan.index')->name('admin.layanan');
-    Route::view('/layanan/tambah', 'admin.layanan.form', ['mode' => 'create'])->name('admin.layanan.create');
-    Route::view('/layanan/edit', 'admin.layanan.form', ['mode' => 'edit'])->name('admin.layanan.edit');
-    Route::post('/layanan', function () {
-        return redirect()->route('admin.layanan')->with('status', 'Layanan baru berhasil ditambahkan.');
-    })->name('admin.layanan.store');
-    Route::post('/layanan/update', function () {
-        return redirect()->route('admin.layanan')->with('status', 'Layanan berhasil diperbarui.');
-    })->name('admin.layanan.update');
-    Route::post('/layanan/hapus', function () {
-        return redirect()->route('admin.layanan')->with('status', 'Layanan berhasil dihapus.');
-    })->name('admin.layanan.destroy');
+Route::get('/pesanan/detail/{kode}', [AdminController::class,'detailPesanan'])
+    ->name('admin.pesanan.detail');
 
+Route::post('/pesanan/{kode}/status',
+    [AdminController::class,'updateStatus'])
+    ->name('admin.pesanan.status');
+
+   // Kelola Layanan
+Route::get('/layanan', [AdminController::class, 'layanan'])
+    ->name('admin.layanan');
+
+Route::get('/layanan/tambah', [AdminController::class, 'createLayanan'])
+    ->name('admin.layanan.create');
+
+Route::post('/layanan', [AdminController::class, 'storeLayanan'])
+    ->name('admin.layanan.store');
+
+Route::get('/layanan/{layanan}/edit', [AdminController::class, 'editLayanan'])
+    ->name('admin.layanan.edit');
+
+Route::put('/layanan/{layanan}', [AdminController::class, 'updateLayanan'])
+    ->name('admin.layanan.update');
+
+Route::delete('/layanan/{layanan}', [AdminController::class, 'destroyLayanan'])
+    ->name('admin.layanan.destroy');
+    
     // Verifikasi Pembayaran
-    Route::view('/verifikasi', 'admin.verifikasi.index')->name('admin.verifikasi');
-    Route::view('/verifikasi/detail', 'admin.verifikasi.detail')->name('admin.verifikasi.detail');
-    Route::post('/verifikasi/terima', function () {
-        return redirect()->route('admin.verifikasi')->with('status', 'Pembayaran berhasil diverifikasi.');
-    })->name('admin.verifikasi.terima');
-    Route::post('/verifikasi/tolak', function () {
-        return redirect()->route('admin.verifikasi')->with('status', 'Pembayaran telah ditolak.');
-    })->name('admin.verifikasi.tolak');
 
+Route::get('/verifikasi', [AdminController::class, 'verifikasi'])
+    ->name('admin.verifikasi');
+
+Route::get('/verifikasi/{kode}', [AdminController::class, 'detailVerifikasi'])
+    ->name('admin.verifikasi.detail');
+
+Route::post('/verifikasi/{kode}/terima',
+    [AdminController::class, 'terimaPembayaran'])
+    ->name('admin.verifikasi.terima');
+
+Route::post('/verifikasi/{kode}/tolak',
+    [AdminController::class, 'tolakPembayaran'])
+    ->name('admin.verifikasi.tolak');
+    
     // Laporan Pendapatan
-    Route::view('/laporan', 'admin.laporan.index')->name('admin.laporan');
+Route::get('/laporan', [AdminController::class,'laporan'])
+    ->name('admin.laporan');
 
     // Edit Profil & Ubah Password
-    Route::view('/profil', 'admin.profil')->name('admin.profil');
-    Route::post('/profil', function () {
-        return back()->with('status', 'Profil berhasil diperbarui.');
-    })->name('admin.profil.update');
-    Route::view('/ubah-password', 'admin.password')->name('admin.password');
-    Route::post('/ubah-password', function () {
-        return back()->with('status', 'Password berhasil diubah.');
-    })->name('admin.password.update');
+Route::view('/profil', 'admin.profil')->name('admin.profil');
+
+// Update Profil
+Route::post('/profil/update', [AuthController::class, 'updateAdminProfile'])
+    ->name('admin.profile.update');
+
+// Halaman Ubah Password
+Route::view('/ubah-password', 'admin.password')
+    ->name('admin.password');
+
+// Update Password
+Route::post('/ubah-password', [AuthController::class, 'updatePassword'])
+    ->name('admin.password.update');
 
     // Logout admin (UI only)
     Route::get('/logout', function () {
         return redirect('/');
     })->name('admin.logout');
+;
 });
