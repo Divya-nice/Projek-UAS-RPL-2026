@@ -44,13 +44,13 @@
             </div>
 
             <div class="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-                @foreach($populer as $slug => $item)
+                @foreach($populer as $item)
                     <x-popular-card
-                        :slug="$slug"
+                        :slug="Str::slug($item['nama'])"
                         :nama="$item['nama']"
                         :harga="\App\Http\Controllers\PesananController::rupiah($item['harga'])"
                         :deskripsi="$item['deskripsi']" />
-                @endforeach
+@endforeach
             </div>
         </div>
     </section>

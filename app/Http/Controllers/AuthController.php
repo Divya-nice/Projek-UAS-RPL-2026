@@ -15,13 +15,11 @@ class AuthController extends Controller
         return view('auth.login');
     }
 
-
     // Menampilkan halaman register
     public function showRegister()
     {
         return view('auth.register');
     }
-
 
     // Proses register
     public function register(Request $request)
@@ -33,7 +31,6 @@ class AuthController extends Controller
             'password' => 'required|min:8|confirmed',
         ]);
 
-
         User::create([
             'name' => $request->name,
             'email' => $request->email,
@@ -41,11 +38,9 @@ class AuthController extends Controller
             'password' => Hash::make($request->password),
         ]);
 
-
-        return redirect('/login')
+        return redirect()->route('login')
             ->with('success', 'Registrasi berhasil, silakan login.');
     }
-
 
     // Proses login
     public function login(Request $request)
@@ -55,20 +50,17 @@ class AuthController extends Controller
             'password' => 'required',
         ]);
 
-
         if (Auth::attempt($credentials)) {
 
             $request->session()->regenerate();
 
-            return redirect('/');
+            return redirect()->route('pesanan.beranda');
         }
-
 
         return back()->withErrors([
             'email' => 'Email atau password salah.',
         ]);
     }
-
 
     // Logout
     public function logout(Request $request)
@@ -79,7 +71,6 @@ class AuthController extends Controller
 
         $request->session()->regenerateToken();
 
-
-        return redirect('/login');
+        return redirect()->route('login');
     }
 }

@@ -58,9 +58,11 @@
                                 <div><p class="text-[11px] text-slate-400">Jumlah</p><p class="mt-0.5 text-sm font-semibold text-[#1E293B]">{{ $item['jumlah'] }} Pasang</p></div>
                                 <div><p class="text-[11px] text-slate-400">Metode</p><p class="mt-0.5 text-sm font-semibold text-[#1E293B]">{{ $item['pengiriman'] ?? '-' }}</p></div>
                             </div>
-
+                            
                             <div class="text-right">
-                                <p class="text-lg font-bold text-[#1E293B]">{{ \App\Http\Controllers\PesananController::rupiah($item['total']) }}</p>
+                              <p class="text-lg font-bold text-[#1E293B]">
+                                {{ \App\Http\Controllers\PesananController::rupiah($item['total']) }}
+                              </p>
                             </div>
 
                             <div class="flex flex-col items-stretch gap-2">

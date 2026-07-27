@@ -4,11 +4,14 @@
 
 @section('content')
 @php
-    $petaHarga = collect($layanan)->map(fn ($i) => [
+    $petaHarga = collect($layanan)->mapWithKeys(function ($i, $slug) {
+    return [$slug => [
         'nama'  => $i['nama'],
         'harga' => $i['harga'],
-    ]);
-    $terpilih = $layanan[$slugTerpilih];
+    ]];
+});
+
+$terpilih = $layanan[$slugTerpilih];
 @endphp
 
 <section class="bg-[#F2F7FD] py-10 lg:py-14">
@@ -43,7 +46,7 @@
 
         <form method="POST" action="{{ route('pesanan.form.proses') }}" enctype="multipart/form-data" class="mt-8" id="form-pesanan">
             @csrf
-            <input type="hidden" name="layanan" id="input-layanan" value="{{ $slugTerpilih }}">
+            <input type="hidden" name="layanan" id="input-layanan" value="">
 
             <div class="grid gap-6 lg:grid-cols-3">
                 {{-- Ringkasan layanan (sticky) --}}
@@ -54,7 +57,10 @@
                                 <h2 class="text-base font-bold text-[#1E293B]">Ringkasan Layanan</h2>
                             </div>
                             <div class="p-5">
-                                <x-shoe-thumb :slug="$slugTerpilih" class="aspect-[4/3] w-full" />
+
+                                    <x-shoe-thumb :slug="\Illuminate\Support\Str::slug($terpilih['nama'])"
+                                    class="aspect-[4/3] w-full"/>
+                                </div>
                                 <p class="mt-4 text-sm font-semibold text-[#1566AD]" id="ringkas-nama">{{ $terpilih['nama'] }}</p>
                                 <p class="mt-1 text-2xl font-bold text-[#1E293B]" id="ringkas-harga">{{ \App\Http\Controllers\PesananController::rupiah($terpilih['harga']) }}</p>
 
@@ -201,6 +207,10 @@
             ringkasHarga.textContent = rupiah(data.harga);
             detailLayanan.value = data.nama;
         }
+        inputLayanan.value =
+        pilihLayanan.value;
+        syncLayanan();
+
         pilihLayanan.addEventListener('change', syncLayanan);
 
         function renderUkuran() {
