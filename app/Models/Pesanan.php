@@ -12,18 +12,28 @@ class Pesanan extends Model
     protected $fillable = [
         'user_id',
         'layanan_id',
+        'nomor_pesanan',
         'nama',
         'nomor_hp',
         'alamat',
+        'wilayah',
         'jumlah_sepatu',
         'ukuran_sepatu',
         'foto_sepatu',
         'metode_pengantaran',
         'pin_lokasi',
+        'total_biaya',
         'status',
         'bukti_pembayaran',
         'status_pembayaran',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'total_biaya' => 'decimal:2',
+        ];
+    }
 
 
     public function layanan()

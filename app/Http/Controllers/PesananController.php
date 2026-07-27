@@ -5,14 +5,15 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Auth;
 use App\Models\Pesanan;
 use App\Models\Layanan;
-use Illuminate\Support\Facades\Auth;
 
 class PesananController extends Controller
 {
     /**
-     * Ambil seluruh data layanan dari config.
+     * Ambil seluruh data layanan dari config (katalog statis untuk
+     * halaman Beranda / Katalog / Form pemesanan).
      *
      * @return array<string, mixed>
      */
@@ -41,7 +42,7 @@ class PesananController extends Controller
                 'deep-cleaning-regular',
                 'one-day-service',
                 'repaint',
-                'leather-care'
+                'leather-care',
             ])
             ->all();
 
@@ -108,8 +109,9 @@ class PesananController extends Controller
 
         $subtotal = $item['harga'] * (int) $data['jumlah'];
 
+        // Mulai wizard pesanan dari awal setiap kali step 1 disubmit, agar
+        // sisa data dari layanan/isian sebelumnya tidak ikut terbawa.
         $pesanan = array_merge(
-            $request->session()->get('pesanan', []),
             $data,
             [
                 'layanan_nama'  => $item['nama'],
@@ -129,8 +131,8 @@ class PesananController extends Controller
 
         return redirect()->route('pesanan.pengantaran');
     }
-  
-      /**
+
+    /**
      * Step 2 - Metode Pengantaran.
      */
     public function pengantaran(Request $request)
@@ -183,7 +185,7 @@ class PesananController extends Controller
         }
 
         $pesanan['metode'] = $data['metode'];
-        $pesanan['kecamatan'] = $data['kecamatan'] ?? null;
+        $pesanan['kecamatan'] = $data['metode'] === 'jemput' ? $data['kecamatan'] : null;
         $pesanan['alamat_jemput'] = $data['alamat_jemput'] ?? null;
         $pesanan['ongkos_jemput'] = $ongkosJemput;
         $pesanan['total'] = ($pesanan['subtotal'] ?? 0) + $ongkosJemput;
@@ -192,7 +194,8 @@ class PesananController extends Controller
 
         return redirect()->route('pesanan.ringkasan');
     }
-      /**
+
+    /**
      * Step 3 - Ringkasan Pesanan.
      */
     public function ringkasan(Request $request)
@@ -228,7 +231,7 @@ class PesananController extends Controller
     }
 
     /**
-     * Proses Step 4 - Simpan Pesanan.
+     * Proses Step 4 - Simpan Pesanan ke database.
      */
     public function prosesPembayaran(Request $request)
     {
@@ -245,74 +248,57 @@ class PesananController extends Controller
         $kode = '#PTK' . now()->format('ymd') . strtoupper(Str::random(3));
 
         $pengiriman = ($pesanan['metode'] === 'jemput')
-            ? 'Dijemput Pemilik'
-            : 'Diantar Sendiri';
+            ? 'jemput'
+            : 'antar';
 
-        $order = [
-            'kode'           => $kode,
-            'tanggal'        => now()->translatedFormat('d F Y'),
-            'waktu'          => now()->translatedFormat('H.i') . ' WIB',
+        // Katalog di halaman pelanggan bersumber dari config (single source
+        // of truth untuk teks/harga tampilan), sedangkan tabel `layanans`
+        // dikelola terpisah oleh admin. Untuk menjaga relasi layanan_id
+        // tetap valid tanpa memaksa admin menyamakan nama persis, kita
+        // cari-atau-buat baris layanan yang sesuai berdasarkan nama.
+        $layanan = Layanan::firstOrCreate(
+            ['nama_layanan' => $pesanan['layanan_nama']],
+            [
+                'harga'    => $pesanan['layanan_harga'],
+                'estimasi' => $pesanan['estimasi'] ?? null,
+                'status'   => 'aktif',
+            ]
+        );
 
-            'layanan'        => $pesanan['layanan_nama'],
-            'slug'           => $pesanan['layanan'],
+        $pesananBaru = Pesanan::create([
+            'user_id'            => Auth::id(),
+            'layanan_id'         => $layanan->id,
+            'nomor_pesanan'      => $kode,
+            'nama'               => $pesanan['nama'],
+            'nomor_hp'           => $pesanan['telepon'],
+            'alamat'             => $pesanan['alamat'],
+            'wilayah'            => $pesanan['kecamatan'] ?? null,
+            'jumlah_sepatu'      => $pesanan['jumlah'],
+            'ukuran_sepatu'      => implode(', ', $pesanan['ukuran']),
+            'foto_sepatu'        => null,
+            'metode_pengantaran' => $pengiriman,
+            'pin_lokasi'         => null,
+            'total_biaya'        => $pesanan['total'],
+            'status'             => 'Menunggu Pembayaran',
+            'status_pembayaran'  => 'menunggu_upload',
+        ]);
 
-            'jumlah'         => (int) $pesanan['jumlah'],
-            'ukuran'         => implode(', ', $pesanan['ukuran']),
-            'catatan'        => $pesanan['catatan'],
+        $request->session()->put('pesanan_sukses', $pesananBaru->nomor_pesanan);
+        $request->session()->forget('pesanan');
 
-            'nama'           => $pesanan['nama'],
-            'telepon'        => $pesanan['telepon'],
-            'email'          => $pesanan['email'] ?? null,
-            'alamat'         => $pesanan['alamat'],
-
-            'pengiriman'     => $pengiriman,
-            'kecamatan'      => $pesanan['kecamatan'] ?? null,
-
-            'subtotal'       => $pesanan['subtotal'],
-            'ongkos'         => $pesanan['ongkos_jemput'],
-            'total'          => $pesanan['total'],
-
-            'metode_bayar'   => $data['metode_bayar'],
-            'status'         => 'Menunggu Pembayaran',
-
-            'bukti'          => null,
-        ];
-
-    $layanan = Layanan::where('nama_layanan', $pesanan['layanan_nama'])->firstOrFail();
-    Pesanan::create([
-    'user_id' => Auth::id(),
-    'layanan_id' => $layanan->id,
-    'nomor_pesanan' => $kode,
-    'nama' => $pesanan['nama'],
-    'nomor_hp' => $pesanan['telepon'],
-    'alamat' => $pesanan['alamat'],
-    'wilayah' => $pesanan['kecamatan'] ?? null,
-    'jumlah_sepatu' => $pesanan['jumlah'],
-    'ukuran_sepatu' => implode(', ', $pesanan['ukuran']),
-    'foto_sepatu' => null,
-    'metode_pengantaran' => $pengiriman,
-    'pin_lokasi' => null,
-    'total_biaya' => $pesanan['total'],
-    'status' => 'Menunggu Pembayaran',
-    'status_pembayaran' => 'menunggu_upload',
-]);
-
-$request->session()->put('pesanan_sukses', $kode);
-$request->session()->forget('pesanan');
-
-return redirect()->route('pesanan.berhasil');
-
+        return redirect()->route('pesanan.berhasil');
     }
-  
-      /**
+
+    /**
      * Halaman Pesanan Berhasil Dibuat.
      */
     public function berhasil(Request $request)
     {
         $kode = $request->session()->get('pesanan_sukses');
 
-        
-        $pesanan = Pesanan::where('nomor_pesanan', $kode)->first();
+        $pesanan = Pesanan::where('nomor_pesanan', $kode)
+            ->where('user_id', Auth::id())
+            ->first();
 
         if (! $pesanan) {
             return redirect()->route('pesanan.beranda');
@@ -324,20 +310,13 @@ return redirect()->route('pesanan.berhasil');
     }
 
     /**
-     * Halaman Pembayaran (instruksi transfer).
+     * Halaman Pembayaran (instruksi transfer) untuk pesanan tertentu.
      */
     public function bayar(Request $request, string $kode)
     {
-        $pesanan = Pesanan::where('nomor_pesanan', $kode)->first();
-
         $pesanan = Pesanan::where('nomor_pesanan', $kode)
-    ->where('user_id', Auth::id())
-    ->firstOrFail();
-
-return view('pesanan.bayar', [
-    'pesanan' => $pesanan,
-    'rekening' => config('layanan.kontak.rekening', []),
-]);
+            ->where('user_id', Auth::id())
+            ->firstOrFail();
 
         return view('pesanan.bayar', [
             'pesanan'  => $pesanan,
@@ -349,44 +328,50 @@ return view('pesanan.bayar', [
      * Halaman Upload Bukti Pembayaran.
      */
     public function bukti(Request $request, string $kode)
-{
-    $pesanan = Pesanan::where('nomor_pesanan', $kode)
-        ->where('user_id', Auth::id())
-        ->firstOrFail();
+    {
+        $pesanan = Pesanan::where('nomor_pesanan', $kode)
+            ->where('user_id', Auth::id())
+            ->firstOrFail();
 
-    return view('pesanan.bukti', [
-        'pesanan' => $pesanan,
-    ]);
-}
+        return view('pesanan.bukti', [
+            'pesanan' => $pesanan,
+        ]);
+    }
 
     /**
      * Proses Upload Bukti Pembayaran.
      */
     public function prosesBukti(Request $request, string $kode)
-{
-    $request->validate([
-        'bukti' => [
-            'required',
-            'image',
-            'mimes:jpg,jpeg,png',
-            'max:5120',
-        ],
-    ]);
+    {
+        $pesanan = Pesanan::where('nomor_pesanan', $kode)
+            ->where('user_id', Auth::id())
+            ->firstOrFail();
 
-    $path = $request->file('bukti')->store('bukti-pembayaran', 'public');
+        $request->validate([
+            'bukti' => [
+                'required',
+                'image',
+                'mimes:jpg,jpeg,png',
+                'max:5120',
+            ],
+        ]);
 
-    $pesanan = Pesanan::where('nomor_pesanan', $kode)->firstOrFail();
+        if (! empty($pesanan->bukti_pembayaran)) {
+            Storage::disk('public')->delete($pesanan->bukti_pembayaran);
+        }
 
-    $pesanan->update([
-        'bukti_pembayaran' => $path,
-        'status_pembayaran' => 'menunggu_verifikasi',
-        'status' => 'Menunggu Verifikasi',
-    ]);
+        $path = $request->file('bukti')->store('bukti-pembayaran', 'public');
 
-    $request->session()->put('pesanan_sukses', $pesanan->nomor_pesanan);
+        $pesanan->update([
+            'bukti_pembayaran'  => $path,
+            'status_pembayaran' => 'menunggu_verifikasi',
+            'status'            => 'Menunggu Verifikasi',
+        ]);
 
-    return redirect()->route('pesanan.bukti.berhasil');
-}
+        $request->session()->put('pesanan_sukses', $pesanan->nomor_pesanan);
+
+        return redirect()->route('pesanan.bukti.berhasil');
+    }
 
     /**
      * Halaman bukti pembayaran berhasil dikirim.
@@ -395,19 +380,9 @@ return view('pesanan.bayar', [
     {
         $kode = $request->session()->get('pesanan_sukses');
 
-        $request->validate([
-    'bukti' => [
-        'required',
-        'image',
-        'mimes:jpg,jpeg,png',
-        'max:5120',
-    ],
-]);
-
-$path = $request->file('bukti')
-    ->store('bukti-pembayaran', 'public');
-
-        $pesanan = Pesanan::where('nomor_pesanan', $kode)->first();
+        $pesanan = Pesanan::where('nomor_pesanan', $kode)
+            ->where('user_id', Auth::id())
+            ->first();
 
         if (! $pesanan) {
             return redirect()->route('pesanan.riwayat');
@@ -417,32 +392,29 @@ $path = $request->file('bukti')
             'pesanan' => $pesanan,
         ]);
     }
-  
-      /**
+
+    /**
      * Membatalkan pesanan.
      */
     public function batalkan(Request $request, string $kode)
     {
-        $pesanan = Pesanan::where('nomor_pesanan', $kode)->firstOrFail();
+        $pesanan = Pesanan::where('nomor_pesanan', $kode)
+            ->where('user_id', Auth::id())
+            ->firstOrFail();
 
-        if (! $pesanan) {
-            return redirect()->route('pesanan.riwayat');
-        }
-
-        if (in_array($pesanan['status'], ['Selesai', 'Dibatalkan'], true)) {
+        if (in_array($pesanan->status, ['Selesai', 'Dibatalkan'], true)) {
             return redirect()
                 ->route('pesanan.riwayat')
                 ->with('info', 'Pesanan tidak dapat dibatalkan.');
         }
 
+        $pesanan->update([
+            'status' => 'Dibatalkan',
+        ]);
 
-$pesanan->update([
-    'status' => 'Dibatalkan',
-]);
-
-return redirect()
-    ->route('pesanan.riwayat')
-    ->with('info', 'Pesanan berhasil dibatalkan.');
+        return redirect()
+            ->route('pesanan.riwayat')
+            ->with('info', 'Pesanan berhasil dibatalkan.');
     }
 
     /**
@@ -450,7 +422,9 @@ return redirect()
      */
     public function riwayat(Request $request)
     {
-        $riwayat = Pesanan::where('user_id', Auth::id())->get();
+        $riwayat = Pesanan::where('user_id', Auth::id())
+            ->latest()
+            ->get();
 
         return view('pesanan.riwayat', compact('riwayat'));
     }
@@ -459,26 +433,21 @@ return redirect()
      * Menampilkan nota pesanan.
      */
     public function nota(Request $request, string $kode)
-{
-    $pesanan = Pesanan::where('nomor_pesanan', $kode)
-        ->where('user_id', Auth::id())
-        ->firstOrFail();
+    {
+        $pesanan = Pesanan::where('nomor_pesanan', $kode)
+            ->where('user_id', Auth::id())
+            ->firstOrFail();
 
-    return view('pesanan.nota', compact('pesanan'));
-}
+        return view('pesanan.nota', compact('pesanan'));
+    }
+
     /**
      * Halaman akun.
      */
     public function akun(Request $request)
     {
         return view('pesanan.akun', [
-            'user' => $request->session()->get('user', [
-                'nama'     => 'Pengguna',
-                'email'    => 'user@email.com',
-                'telepon'  => '',
-                'alamat'   => '',
-                'foto'     => null,
-            ]),
+            'user' => Auth::user(),
         ]);
     }
 
@@ -487,35 +456,38 @@ return redirect()
      */
     public function updateAkun(Request $request)
     {
+        $user = Auth::user();
+
         $data = $request->validate([
             'nama'     => ['required', 'string', 'max:100'],
-            'email'    => ['required', 'email', 'max:100'],
+            'email'    => ['required', 'email', 'max:100', 'unique:users,email,' . $user->id],
             'telepon'  => ['required', 'string', 'max:20'],
-            'alamat'   => ['required', 'string', 'max:255'],
-            'password' => ['nullable', 'string', 'min:6'],
+            'alamat'   => ['nullable', 'string', 'max:255'],
+            'password' => ['nullable', 'string', 'min:8', 'confirmed'],
             'foto'     => ['nullable', 'image', 'max:5120'],
         ]);
 
-        $user = $request->session()->get('user', []);
+        $update = [
+            'name'   => $data['nama'],
+            'email'  => $data['email'],
+            'phone'  => $data['telepon'],
+            'alamat' => $data['alamat'] ?? $user->alamat,
+        ];
 
         if ($request->hasFile('foto')) {
-
-            if (! empty($user['foto'])) {
-                Storage::disk('public')->delete($user['foto']);
+            if (! empty($user->foto)) {
+                Storage::disk('public')->delete($user->foto);
             }
 
-            $data['foto'] = $request
-                ->file('foto')
-                ->store('foto-profil', 'public');
-        } else {
-            $data['foto'] = $user['foto'] ?? null;
+            $update['foto'] = $request->file('foto')->store('foto-profil', 'public');
         }
 
-        if (empty($data['password'])) {
-            unset($data['password']);
+        if (! empty($data['password'])) {
+            $update['password'] = bcrypt($data['password']);
         }
 
-        $request->session()->put('user', array_merge($user, $data));
+        $user->update($update);
 
         return back()->with('sukses', 'Profil berhasil diperbarui.');
-    }}
+    }
+}

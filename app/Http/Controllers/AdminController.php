@@ -203,7 +203,7 @@ public function dashboard()
     {
 
         $request->validate([
-            'status'=>'required'
+            'status' => ['required', 'in:Menunggu Pembayaran,Menunggu Verifikasi,Diproses,Dicuci,Dikeringkan,Siap Diambil,Selesai,Dibatalkan,Ditolak'],
         ]);
 
 
@@ -263,11 +263,11 @@ public function dashboard()
 
         $data=$request->validate([
 
-            'nama_layanan'=>'required',
-            'harga'=>'required|integer',
-            'estimasi'=>'required',
-            'status'=>'required',
-            'deskripsi'=>'nullable',
+            'nama_layanan'=>'required|string|max:150',
+            'harga'=>'required|integer|min:0',
+            'estimasi'=>'required|string|max:50',
+            'status'=>'required|in:aktif,nonaktif',
+            'deskripsi'=>'nullable|string',
             'gambar'=>'nullable|image|max:2048'
 
         ]);
@@ -317,11 +317,11 @@ public function dashboard()
 
         $data=$request->validate([
 
-            'nama_layanan'=>'required',
-            'harga'=>'required|integer',
-            'estimasi'=>'required',
-            'status'=>'required',
-            'deskripsi'=>'nullable',
+            'nama_layanan'=>'required|string|max:150',
+            'harga'=>'required|integer|min:0',
+            'estimasi'=>'required|string|max:50',
+            'status'=>'required|in:aktif,nonaktif',
+            'deskripsi'=>'nullable|string',
             'gambar'=>'nullable|image|max:2048'
 
         ]);
