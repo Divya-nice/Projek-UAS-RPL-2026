@@ -11,6 +11,7 @@ $petaHarga = collect($layanan)->mapWithKeys(function ($i, $slug) {
             'nama'   => $i['nama'],
             'harga'  => $i['harga'],
             'gambar' => $i['gambar'] ?? null,
+            'estimasi'  => $i['estimasi'] ?? '2-3 Hari',
         ]
     ];
 });
@@ -134,6 +135,14 @@ $terpilih = $layanan[$slugTerpilih];
                                     class="mt-1 text-xl font-bold text-[#112A5A]">
 
                                     {{ \App\Http\Controllers\PesananController::rupiah($terpilih['harga']) }}
+
+                                </p>
+
+                                <p
+                                    id="ringkas-estimasi"
+                                    class="class="mt-2 text-sm text-slate-500">
+
+                                    Estimasi : {{ $terpilih['estimasi'] ?? '2-3 Hari' }}                         
 
                                 </p>
 
@@ -363,27 +372,8 @@ $terpilih = $layanan[$slugTerpilih];
         </div>
 
         {{-- Ukuran --}}
-        <div>
-
-            <label
-                class="mb-2 block text-sm font-semibold text-[#243B6A]">
-
-                Ukuran Sepatu *
-
-            </label>
-
             <div id="wadah-ukuran">
 
-                <input
-                    type="text"
-                    name="ukuran[]"
-                    required
-                    placeholder="Contoh : Sepatu 1 : 42, Sepatu 2 : 39"
-                    class="h-11 w-full rounded-lg border border-slate-300 bg-[#F8FAFD] px-4">
-
-            </div>
-
-        </div>
 
         {{-- Catatan --}}
         <div>
@@ -527,7 +517,7 @@ $terpilih = $layanan[$slugTerpilih];
 <div class="mt-8 flex items-center justify-end gap-8">
     <a
         href="{{ route('pesanan.katalog') }}"
-        class="mr-80 rounded-lg border border-slate-300 bg-white px-6 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50">
+        class="mr-65 rounded-lg border border-slate-300 bg-white px-6 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50">
 
         Kembali
 
@@ -575,71 +565,81 @@ const detail=document.getElementById('detail-layanan');
 
 const gambar=document.getElementById('ringkas-gambar');
 
+const estimasi = document.getElementById("ringkas-estimasi");
+
 const jumlah=document.getElementById('jumlah');
 
 const wadah=document.getElementById('wadah-ukuran');
 
-function renderUkuran(){
+function renderUkuran() {
 
-    const total = parseInt(jumlah.value) || 1;
+    const jumlahSepatu = parseInt(jumlah.value) || 1;
 
     const lama = [];
 
-    wadah.querySelectorAll('input').forEach(input=>{
+    wadah.querySelectorAll("input").forEach(input => {
         lama.push(input.value);
     });
 
     wadah.innerHTML = "";
 
-    for(let i=0;i<total;i++){
+    for (let i = 0; i < jumlahSepatu; i++) {
 
-        const div=document.createElement("div");
+        const div = document.createElement("div");
+        div.className = "mb-4";
 
-        div.className="mb-4";
+        const label = document.createElement("label");
+        label.className = "mb-2 block text-sm font-semibold text-[#243B6A]";
 
-        div.innerHTML=`
-            <label class="mb-2 block text-sm font-semibold text-[#243B6A]">
-                Ukuran Sepatu ${i+1} *
-            </label>
+        if (jumlahSepatu === 1) {
+            label.textContent = "Ukuran Sepatu *";
+        } else {
+            label.textContent = "Ukuran Sepatu " + (i + 1) + " *";
+        }
 
-            <input
-                type="text"
-                name="ukuran[]"
-                required
-                value="${lama[i] ?? ''}"
-                placeholder="Contoh : 42"
-                class="h-11 w-full rounded-lg border border-slate-300 bg-[#F8FAFD] px-4">
-        `;
+        const input = document.createElement("input");
+
+        input.type = "text";
+        input.name = "ukuran[]";
+        input.required = true;
+        input.placeholder = "Contoh : 42";
+        input.value = lama[i] || "";
+
+        input.className =
+            "h-14 w-full rounded-xl border border-slate-300 bg-[#F8FAFD] px-5";
+
+        div.appendChild(label);
+        div.appendChild(input);
 
         wadah.appendChild(div);
-
     }
 
 }
 
 function syncLayanan(){
 
-const slug=pilih.value;
+    const slug = pilih.value;
+    const data = petaHarga[slug];
 
-const data=petaHarga[slug];
+    if(!data) return;
 
-if(!data)return;
+    inputLayanan.value = slug;
 
-inputLayanan.value=slug;
+    nama.textContent = data.nama;
 
-nama.textContent=data.nama;
+    harga.textContent = rupiah(data.harga);
 
-harga.textContent=rupiah(data.harga);
+    detail.value = data.nama;
 
-detail.value=data.nama;
+    estimasi.textContent = "Estimasi : " + data.estimasi;
 
-if(data.gambar && gambar.tagName==="IMG"){
+    if(data.gambar && gambar.tagName === "IMG"){
 
-gambar.src="{{ asset('storage') }}/"+data.gambar;
+        gambar.src = "{{ asset('storage') }}/" + data.gambar;
 
-gambar.alt=data.nama;
+        gambar.alt = data.nama;
 
-}
+    }
 
 }
 

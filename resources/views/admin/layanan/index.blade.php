@@ -22,15 +22,15 @@
 
     {{-- Tabel layanan --}}
     <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-        <div class="overflow-x-auto">
-            <table class="w-full min-w-[860px] text-left text-sm">
-                <thead>
-                    <tr class="bg-[#EAF3FC] text-xs font-semibold uppercase tracking-wide text-slate-500">
-                        <th class="px-5 py-3.5">Layanan</th>
+        <div class="w-full overflow-x-auto">
+            <table class="min-w-full border-collapse text-left text-sm">
+                <thead class="bg-[#EAF3FC]">
+                    <tr class="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                        <th class="rounded-tl-2xl px-5 py-3.5">Layanan</th>
                         <th class="px-5 py-3.5">Harga</th>
                         <th class="px-5 py-3.5">Durasi Pengerjaan</th>
                         <th class="px-5 py-3.5">Status</th>
-                        <th class="px-5 py-3.5 text-center">Aksi</th>
+                        <th class="rounded-tr-2xl px-5 py-3.5 text-center">Aksi</th>
                     </tr>
                 </thead>
 
@@ -88,21 +88,17 @@
                             </span>
                         </td>
 
-                        <td class="px-5 py-4 text-slate-600">
-    ...
-</td>
-
-<td class="px-5 py-4">
-    @if ($item->status === 'aktif')
-        <span class="font-semibold text-green-600">
-            Aktif
-        </span>
-    @else
-        <span class="font-semibold text-red-500">
-            Nonaktif
-        </span>
-    @endif
-</td>
+                        <td class="px-5 py-4">
+                        @if ($item->status === 'aktif')
+                            <span class="font-semibold text-green-600">
+                            Aktif
+                            </span>
+                        @else
+                            <span class="font-semibold text-red-500">
+                            Nonaktif
+                            </span>
+                        @endif
+                        </td>
 
                         <td class="px-5 py-4">
                             <div class="flex items-center justify-center gap-2">

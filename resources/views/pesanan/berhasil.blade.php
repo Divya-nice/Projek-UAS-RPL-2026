@@ -5,8 +5,8 @@
 @section('content')
 @php
     $rp = fn ($n) => \App\Http\Controllers\PesananController::rupiah($n);
-    $kodeUrl = ltrim($pesanan['kode'], '#');
-    $transfer = ($pesanan['metode_bayar'] ?? '') === 'transfer';
+    $kodeUrl = ltrim($pesanan->nomor_pesanan, '#');
+    $transfer = $pesanan->metode_bayar === 'transfer';
 @endphp
 
 <section class="bg-[#F2F7FD] py-12 lg:py-16">
@@ -40,29 +40,29 @@
                         <h2 class="text-base font-bold text-[#1E293B]">Ringkasan Pesanan</h2>
                         <p class="mt-0.5 text-[11px] uppercase tracking-wide text-slate-400">Transaction Details</p>
                     </div>
-                    <span class="rounded-full bg-amber-50 px-3 py-1 text-[11px] font-semibold text-amber-600 ring-1 ring-amber-100">{{ $pesanan['status'] }}</span>
+                    <span class="rounded-full bg-amber-50 px-3 py-1 text-[11px] font-semibold text-amber-600 ring-1 ring-amber-100">{{ $pesanan->status }}</span>
                 </div>
 
                 <dl class="mt-5 grid grid-cols-2 gap-x-4 gap-y-5 text-sm">
                     <div class="flex items-start gap-2.5">
                         <span class="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#EAF3FC] text-[#1566AD]"><x-icon name="clipboard" class="h-4 w-4" /></span>
-                        <div><dt class="text-[11px] uppercase tracking-wide text-slate-400">No. Pesanan</dt><dd class="mt-0.5 font-semibold text-[#1566AD]">{{ $pesanan['kode'] }}</dd></div>
+                        <div><dt class="text-[11px] uppercase tracking-wide text-slate-400">No. Pesanan</dt><dd class="mt-0.5 font-semibold text-[#1566AD]">{{ $pesanan->nomor_pesanan }}</dd></div>
                     </div>
                     <div class="flex items-start gap-2.5">
                         <span class="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#EAF3FC] text-[#1566AD]"><x-icon name="clock" class="h-4 w-4" /></span>
-                        <div><dt class="text-[11px] uppercase tracking-wide text-slate-400">Tanggal</dt><dd class="mt-0.5 font-semibold text-[#1E293B]">{{ $pesanan['tanggal'] }}</dd></div>
+                        <div><dt class="text-[11px] uppercase tracking-wide text-slate-400">Tanggal</dt><dd class="mt-0.5 font-semibold text-[#1E293B]">{{ $pesanan->created_at->format('d M Y H:i') }}</dd></div>
                     </div>
                     <div class="flex items-start gap-2.5">
                         <span class="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#EAF3FC] text-[#1566AD]"><x-icon name="sparkles" class="h-4 w-4" /></span>
-                        <div><dt class="text-[11px] uppercase tracking-wide text-slate-400">Layanan</dt><dd class="mt-0.5 font-semibold text-[#1E293B]">{{ $pesanan['layanan'] }}</dd></div>
+                        <div><dt class="text-[11px] uppercase tracking-wide text-slate-400">Layanan</dt><dd class="mt-0.5 font-semibold text-[#1E293B]">{{ $pesanan->layanan->nama_layanan }}</dd></div>
                     </div>
                     <div class="flex items-start gap-2.5">
                         <span class="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#EAF3FC] text-[#1566AD]"><x-icon name="clipboard" class="h-4 w-4" /></span>
-                        <div><dt class="text-[11px] uppercase tracking-wide text-slate-400">Jumlah</dt><dd class="mt-0.5 font-semibold text-[#1E293B]">{{ $pesanan['jumlah'] }} Pasang</dd></div>
+                        <div><dt class="text-[11px] uppercase tracking-wide text-slate-400">Jumlah</dt><dd class="mt-0.5 font-semibold text-[#1E293B]">{{ $pesanan->jumlah_sepatu }} Pasang</dd></div>
                     </div>
                     <div class="flex items-start gap-2.5">
                         <span class="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#EAF3FC] text-[#1566AD]"><x-icon name="truck" class="h-4 w-4" /></span>
-                        <div><dt class="text-[11px] uppercase tracking-wide text-slate-400">Metode Pengantaran</dt><dd class="mt-0.5 font-semibold text-[#1E293B]">{{ $pesanan['pengiriman'] }}</dd></div>
+                        <div><dt class="text-[11px] uppercase tracking-wide text-slate-400">Metode Pengantaran</dt><dd class="mt-0.5 font-semibold text-[#1E293B]">{{ $pesanan->metode_pengantaran == 'jemput' ? 'Dijemput oleh Pemilik' : 'Antar Sendiri' }}</dd></div>
                     </div>
                     <div class="flex items-start gap-2.5">
                         <span class="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#EAF3FC] text-[#1566AD]"><x-icon name="wallet" class="h-4 w-4" /></span>
@@ -72,7 +72,7 @@
 
                 <div class="mt-6 flex items-center justify-between border-t border-dashed border-slate-200 pt-5">
                     <span class="text-sm font-semibold text-[#1E293B]">Total Pembayaran</span>
-                    <span class="text-2xl font-bold text-[#1566AD]">{{ $rp($pesanan['total']) }}</span>
+                    <span class="text-2xl font-bold text-[#1566AD]">{{ $rp($pesanan->total_biaya) }}</span>
                 </div>
             </div>
 

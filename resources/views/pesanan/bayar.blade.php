@@ -5,7 +5,8 @@
 @section('content')
 @php
     $rp = fn ($n) => \App\Http\Controllers\PesananController::rupiah($n);
-    $kodeUrl = ltrim($pesanan['kode'], '#');
+
+    $kodeUrl = ltrim($pesanan->nomor_pesanan, '#');
     $noRek = $rekening['nomor'] ?? '1234 5678 9012';
 @endphp
 
@@ -31,15 +32,15 @@
         <div class="mt-8 rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-100">
             <div class="flex items-center justify-between">
                 <h2 class="text-base font-bold text-[#1E293B]">Ringkasan Tagihan</h2>
-                <span class="rounded-full bg-[#EAF3FC] px-2.5 py-0.5 text-[11px] font-semibold text-[#1566AD]">{{ $pesanan['kode'] }}</span>
+                <span class="rounded-full bg-[#EAF3FC] px-2.5 py-0.5 text-[11px] font-semibold text-[#1566AD]">{{ $pesanan->nomor_pesanan }}</span>
             </div>
             <dl class="mt-4 grid grid-cols-2 gap-x-4 gap-y-4 text-sm">
-                <div><dt class="text-xs text-slate-400">Tanggal Pesanan</dt><dd class="mt-0.5 font-medium text-slate-700">{{ $pesanan['tanggal'] }}</dd></div>
-                <div><dt class="text-xs text-slate-400">Metode Pengantaran</dt><dd class="mt-0.5 font-medium text-slate-700">{{ $pesanan['pengiriman'] }}</dd></div>
-                <div><dt class="text-xs text-slate-400">Jenis Layanan</dt><dd class="mt-0.5 font-medium text-slate-700">{{ $pesanan['layanan'] }}</dd></div>
-                <div><dt class="text-xs text-slate-400">Jumlah Sepatu</dt><dd class="mt-0.5 font-medium text-slate-700">{{ $pesanan['jumlah'] }} Pasang</dd></div>
-                <div><dt class="text-xs text-slate-400">Ongkos Jemput</dt><dd class="mt-0.5 font-medium text-slate-700">{{ $rp($pesanan['ongkos'] ?? 0) }}</dd></div>
-                <div><dt class="text-xs text-slate-400">Total Pembayaran</dt><dd class="mt-0.5 text-lg font-bold text-[#1566AD]">{{ $rp($pesanan['total']) }}</dd></div>
+                <div><dt class="text-xs text-slate-400">Tanggal Pesanan</dt><dd class="mt-0.5 font-medium text-slate-700">{{ $pesanan->created_at->format('d M Y H:i') }}</dd></div>
+                <div><dt class="text-xs text-slate-400">Metode Pengantaran</dt><dd class="mt-0.5 font-medium text-slate-700">{{ $pesanan->metode_pengantaran == 'jemput' ? 'Jemput' : 'Antar Sendiri' }}</dd></div>
+                <div><dt class="text-xs text-slate-400">Jenis Layanan</dt><dd class="mt-0.5 font-medium text-slate-700">{{ $pesanan->layanan->nama_layanan }}</dd></div>
+                <div><dt class="text-xs text-slate-400">Jumlah Sepatu</dt><dd class="mt-0.5 font-medium text-slate-700">{{ $pesanan->jumlah_sepatu }} Pasang</dd></div>
+                <div><dt class="text-xs text-slate-400">Ongkos Jemput</dt><dd class="mt-0.5 font-medium text-slate-700">{{ $rp($pesanan->ongkos_jemput) }}</dd></div>
+                <div><dt class="text-xs text-slate-400">Total Pembayaran</dt><dd class="mt-0.5 text-lg font-bold text-[#1566AD]">{{ $rp($pesanan->total_biaya) }}</dd></div>
             </dl>
         </div>
 
@@ -61,7 +62,11 @@
             </div>
             <div class="mt-4 flex items-start gap-2.5 rounded-xl bg-[#EAF3FC] p-4 text-xs leading-relaxed text-[#1566AD]">
                 <x-icon name="check-circle" class="mt-0.5 h-4 w-4 shrink-0" />
-                <span>Transfer sesuai nominal <strong>{{ $rp($pesanan['total']) }}</strong>. Setelah transfer, klik <strong>Sudah Transfer</strong> untuk mengunggah bukti pembayaran.</span>
+                <span>
+                    Transfer sesuai nominal
+                    <strong>{{ $rp($pesanan->total_biaya) }}</strong>.
+                    Setelah transfer, klik <strong>Sudah Transfer</strong> untuk mengunggah bukti pembayaran.
+                </span>
             </div>
         </div>
 

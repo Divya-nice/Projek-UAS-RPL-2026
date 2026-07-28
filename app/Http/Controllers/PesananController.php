@@ -40,14 +40,13 @@ class PesananController extends Controller
             ->toArray();
     }
 
-    /**
-     * Format angka menjadi Rupiah.
-     */
-    public static function rupiah(int|float $nilai): string
-    {
-        return 'Rp' . number_format((float) $nilai, 0, ',', '.');
-    }
-
+/**
+ * Format angka menjadi Rupiah.
+ */
+    public static function rupiah(int|float|null $nilai): string
+{
+    return 'Rp ' . number_format((float) ($nilai ?? 0), 0, ',', '.');
+}
     /**
      * Halaman Beranda.
      */
@@ -288,7 +287,9 @@ class PesananController extends Controller
             'ukuran_sepatu'      => implode(', ', $pesanan['ukuran']),
             'foto_sepatu'        => $pesanan['foto_sepatu'] ?? null,
             'metode_pengantaran' => $pengiriman,
+            'metode_bayar'       => $data['metode_bayar'],
             'pin_lokasi'         => null,
+            'ongkos_jemput'      => $pesanan['ongkos_jemput'] ?? 0,
             'total_biaya'        => $pesanan['total'],
             'status'             => 'Menunggu Pembayaran',
             'status_pembayaran'  => 'menunggu_upload',
@@ -324,16 +325,16 @@ class PesananController extends Controller
      * Halaman Pembayaran (instruksi transfer) untuk pesanan tertentu.
      */
     public function bayar(Request $request, string $kode)
-    {
-        $pesanan = Pesanan::where('nomor_pesanan', $kode)
-            ->where('user_id', Auth::id())
-            ->firstOrFail();
+{
+    $pesanan = Pesanan::where('nomor_pesanan', '#'.$kode)
+        ->where('user_id', Auth::id())
+        ->firstOrFail();
 
-        return view('pesanan.bayar', [
-            'pesanan'  => $pesanan,
-            'rekening' => config('layanan.kontak.rekening', []),
-        ]);
-    }
+    return view('pesanan.bayar', [
+        'pesanan'  => $pesanan,
+        'rekening' => config('layanan.kontak.rekening', []),
+    ]);
+}
 
     /**
      * Halaman Upload Bukti Pembayaran.
@@ -433,7 +434,8 @@ class PesananController extends Controller
      */
     public function riwayat(Request $request)
     {
-        $riwayat = Pesanan::where('user_id', Auth::id())
+        $riwayat = Pesanan::with('layanan')
+            ->where('user_id', Auth::id())
             ->latest()
             ->get();
 

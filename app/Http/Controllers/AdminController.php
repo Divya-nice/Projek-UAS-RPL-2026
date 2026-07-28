@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Layanan;
 use App\Models\Pesanan;
+use Illuminate\Support\Facades\Storage;
 
 class AdminController extends Controller
 {
@@ -134,48 +135,91 @@ public function dashboard()
     | KELOLA PESANAN
     |--------------------------------------------------------------------------
     */
-
-
-    public function pesanan()
+public function pesanan(Request $request)
 {
-    $pesanan = Pesanan::with(['user', 'layanan'])
-        ->where('status_pembayaran', 'diterima')
-        ->get();
+    $query = Pesanan::with(['user', 'layanan']);
 
-    $jumlahSemua = $pesanan->count();
+    // =========================
+    // FILTER PENCARIAN
+    // =========================
+    if ($request->filled('search')) {
+        $search = $request->search;
 
-    $jumlahDiproses = $pesanan
-        ->where('status', 'Diproses')
-        ->count();
+        $query->where(function ($q) use ($search) {
+            $q->where('nomor_pesanan', 'like', "%{$search}%")
+              ->orWhereHas('user', function ($u) use ($search) {
+                  $u->where('name', 'like', "%{$search}%");
+              })
+              ->orWhereHas('layanan', function ($l) use ($search) {
+                  $l->where('nama_layanan', 'like', "%{$search}%");
+              });
+        });
+    }
 
-    $jumlahDicuci = $pesanan
-        ->where('status', 'Dicuci')
-        ->count();
+    // =========================
+    // FILTER STATUS
+    // =========================
+    if ($request->filled('status') && $request->status != 'Semua status') {
+        $query->where('status', $request->status);
+    }
 
-    $jumlahDikeringkan = $pesanan
-        ->where('status', 'Dikeringkan')
-        ->count();
+    // =========================
+    // FILTER LAYANAN
+    // =========================
+    if ($request->filled('layanan') && $request->layanan != 'Semua Layanan') {
+        $query->where('layanan_id', $request->layanan);
+    }
 
-    $jumlahSiapDiambil = $pesanan
-        ->where('status', 'Siap Diambil')
-        ->count();
+    // =========================
+    // FILTER TANGGAL
+    // =========================
+    if ($request->filled('tanggal')) {
 
-    $jumlahSelesai = $pesanan
-        ->where('status', 'Selesai')
-        ->count();
+        switch ($request->tanggal) {
 
-    return view('admin.pesanan.index', compact(
-        'pesanan',
-        'jumlahSemua',
-        'jumlahDiproses',
-        'jumlahDicuci',
-        'jumlahDikeringkan',
-        'jumlahSiapDiambil',
-        'jumlahSelesai'
-    ));
+            case 'hari_ini':
+                $query->whereDate('created_at', today());
+                break;
+
+            case 'minggu_ini':
+                $query->whereBetween('created_at', [
+                    now()->startOfWeek(),
+                    now()->endOfWeek()
+                ]);
+                break;
+
+            case 'bulan_ini':
+                $query->whereMonth('created_at', now()->month)
+                      ->whereYear('created_at', now()->year);
+                break;
+        }
+    }
+
+    // =========================
+    // FILTER TAB STATUS
+    // =========================
+    if ($request->filled('tab') && $request->tab != 'Semua') {
+        $query->where('status', $request->tab);
+    }
+
+    $pesanan = $query
+        ->latest()
+        ->paginate(10)
+        ->withQueryString();
+
+    return view('admin.pesanan.index', [
+        'pesanan' => $pesanan,
+
+        'layananList' => Layanan::all(),
+
+        'jumlahSemua' => Pesanan::count(),
+        'jumlahDiproses' => Pesanan::where('status', 'Diproses')->count(),
+        'jumlahDicuci' => Pesanan::where('status', 'Dicuci')->count(),
+        'jumlahDikeringkan' => Pesanan::where('status', 'Dikeringkan')->count(),
+        'jumlahSiapDiambil' => Pesanan::where('status', 'Siap Diambil')->count(),
+        'jumlahSelesai' => Pesanan::where('status', 'Selesai')->count(),
+    ]);
 }
-
-
 
     public function detailPesanan($kode)
     {
@@ -203,7 +247,7 @@ public function dashboard()
     {
 
         $request->validate([
-            'status'=>'required'
+            'status'=>'required|in:aktif,nonaktif'
         ]);
 
 
@@ -266,7 +310,7 @@ public function dashboard()
             'nama_layanan'=>'required',
             'harga'=>'required|integer',
             'estimasi'=>'required',
-            'status'=>'required',
+            'status'=>'required|in:aktif,nonaktif',
             'deskripsi'=>'nullable',
             'gambar'=>'nullable|image|max:2048'
 
@@ -359,6 +403,9 @@ public function dashboard()
 
     public function destroyLayanan(Layanan $layanan)
     {
+        if ($layanan->gambar) {
+            Storage::disk('public')->delete($layanan->gambar);
+        }
 
         $layanan->delete();
 
