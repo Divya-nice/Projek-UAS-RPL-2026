@@ -49,13 +49,16 @@ public function dashboard()
     |--------------------------------------------------------------------------
     */
 
-    public function verifikasi()
+public function verifikasi(Request $request)
 {
     $semua = Pesanan::count();
 
-    $menungguVerifikasi = Pesanan::where(
+    $menungguVerifikasi = Pesanan::whereIn(
         'status_pembayaran',
-        'menunggu_verifikasi'
+        [
+            'menunggu_upload',
+            'menunggu_verifikasi'
+        ]
     )->count();
 
     $diterima = Pesanan::where(
@@ -68,11 +71,30 @@ public function dashboard()
         'ditolak'
     )->count();
 
-    $pending = Pesanan::with(['user', 'layanan'])
-        ->where('status_pembayaran', 'menunggu_verifikasi')
-        ->get();
+    $query = Pesanan::with(['user','layanan'])
+        ->whereIn('status_pembayaran',[
+            'menunggu_upload',
+            'menunggu_verifikasi'
+        ]);
 
-    return view('admin.verifikasi.index', compact(
+    if($request->filled('search')){
+        $search = $request->search;
+
+        $query->where(function($q) use($search){
+
+            $q->where('nomor_pesanan','like',"%{$search}%")
+              ->orWhere('nama','like',"%{$search}%")
+              ->orWhere('nomor_hp','like',"%{$search}%");
+
+        });
+    }
+
+    $pending = $query
+        ->latest()
+        ->paginate(10)
+        ->withQueryString();
+
+    return view('admin.verifikasi.index',compact(
         'pending',
         'semua',
         'menungguVerifikasi',
@@ -80,7 +102,6 @@ public function dashboard()
         'ditolak'
     ));
 }
-
 
     public function detailVerifikasi($kode)
     {
@@ -137,7 +158,14 @@ public function dashboard()
     */
 public function pesanan(Request $request)
 {
-    $query = Pesanan::with(['user', 'layanan']);
+    $query = Pesanan::with(['user', 'layanan'])
+        ->whereIn('status', [
+        'Diproses',
+        'Dicuci',
+        'Dikeringkan',
+        'Siap Diambil',
+        'Selesai',
+    ]);
 
     // =========================
     // FILTER PENCARIAN
@@ -212,7 +240,14 @@ public function pesanan(Request $request)
 
         'layananList' => Layanan::all(),
 
-        'jumlahSemua' => Pesanan::count(),
+        'jumlahSemua' => Pesanan::whereIn('status', [
+            'Diproses',
+            'Dicuci',
+            'Dikeringkan',
+            'Siap Diambil',
+            'Selesai',
+        ])->count(),
+
         'jumlahDiproses' => Pesanan::where('status', 'Diproses')->count(),
         'jumlahDicuci' => Pesanan::where('status', 'Dicuci')->count(),
         'jumlahDikeringkan' => Pesanan::where('status', 'Dikeringkan')->count(),

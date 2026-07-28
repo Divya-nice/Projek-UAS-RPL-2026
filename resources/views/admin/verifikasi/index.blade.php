@@ -57,49 +57,139 @@
 </div>
 
         </div>
-    </div>
 
     {{-- Daftar pembayaran menunggu verifikasi --}}
-    <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+    <div class=" mt-8 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
         <div class="flex flex-col gap-3 border-b border-slate-100 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
             <h2 class="text-lg font-bold text-slate-900">Daftar Pembayaran Menunggu Verifikasi</h2>
             <div class="relative">
                 <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
                     <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" /></svg>
                 </span>
-                <input type="text" placeholder="Cari nama atau order..." class="w-full rounded-lg border border-slate-200 py-2 pl-9 pr-3 text-sm text-slate-600 placeholder-slate-400 focus:border-[#1E7BC8] focus:outline-none focus:ring-2 focus:ring-[#1E7BC8]/20 sm:w-64" />
+                <form method="GET"
+                    action="{{ route('admin.verifikasi') }}"
+                    class="relative">
+
+                    <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
+                        <svg class="h-4 w-4"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke-width="1.8"
+                            stroke="currentColor">
+
+                            <path stroke-linecap="round"
+                                stroke-linejoin="round"
+                                d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"/>
+                        </svg>
+                    </span>
+
+                    <input
+                        type="text"
+                        name="search"
+                        value="{{ request('search') }}"
+                        placeholder="Cari nama atau nomor pesanan..."
+                        class="w-full rounded-lg border border-slate-200 py-2 pl-9 pr-10 text-sm sm:w-64">
+
+                    <button
+                        type="submit"
+                        class="absolute right-2 top-1/2 -translate-y-1/2 text-[#1566AD]">
+
+                        Cari
+
+                    </button>
+
+                </form>
             </div>
         </div>
 
-        <div class="divide-y divide-slate-100">
-           @forelse ($pending as $p)
-            <a href="{{ route('admin.verifikasi.detail', ['kode' => $p['no']]) }}"></a>
-                {{-- Order + pelanggan --}}
-                <div class="min-w-0 flex-1">
-                    <p class="font-semibold text-slate-800">{{ $p['no'] }}</p>
-                    <p class="mt-0.5 truncate text-sm text-slate-500">{{ $p['nama'] }} · {{ $p['hp'] }}</p>
-                </div>
-                {{-- Tanggal --}}
-                <div class="hidden text-right text-sm text-slate-500 sm:block">
-                    <p>{{ $p['tgl'] }}</p>
-                    <p class="text-xs text-slate-400">{{ $p['jam'] }}</p>
-                </div>
-                {{-- Status --}}
-                <span class="inline-flex shrink-0 rounded-full bg-amber-100 px-2.5 py-1 text-[11px] font-semibold text-amber-700">Menunggu Verifikasi</span>
-                {{-- Total --}}
-                <p class="shrink-0 text-right font-bold text-[#1566AD]">{{ $p['total'] }}</p>
-                {{-- Panah --}}
-                <span class="shrink-0 text-slate-300">
-                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" /></svg>
-                </span>
-            </a>
-            @empty
-            <div class="px-5 py-10 text-center text-slate-500">
-            Belum ada pembayaran yang menunggu verifikasi.
-            </div>
-            @endforelse
-        </div>
+<div class="divide-y divide-slate-100">
+
+@forelse ($pending as $p)
+
+<a href="{{ route('admin.verifikasi.detail', ['kode' => $p->nomor_pesanan]) }}"
+   class="flex items-center gap-4 px-5 py-4 transition hover:bg-slate-50">
+
+    {{-- Order + pelanggan --}}
+    <div class="min-w-0 flex-1">
+        <p class="font-semibold text-slate-800">
+            {{ $p->nomor_pesanan }}
+        </p>
+
+        <p class="mt-0.5 truncate text-sm text-slate-500">
+            {{ $p->nama }} · {{ $p->nomor_hp }}
+        </p>
     </div>
+
+    {{-- Tanggal --}}
+    <div class="hidden text-right text-sm text-slate-500 sm:block">
+        <p>{{ $p->created_at->format('d M Y') }}</p>
+        <p class="text-xs text-slate-400">
+            {{ $p->created_at->format('H:i') }}
+        </p>
+    </div>
+
+    {{-- Status --}}
+    @if($p->status_pembayaran == 'menunggu_upload')
+
+        <span class="inline-flex shrink-0 rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-semibold text-slate-700">
+            Belum Upload Bukti
+        </span>
+
+    @else
+
+        <span class="inline-flex shrink-0 rounded-full bg-amber-100 px-2.5 py-1 text-[11px] font-semibold text-amber-700">
+            Menunggu Verifikasi
+        </span>
+
+    @endif
+
+    {{-- Total --}}
+    <p class="shrink-0 text-right font-bold text-[#1566AD]">
+        Rp{{ number_format($p->total_biaya,0,',','.') }}
+    </p>
+
+    {{-- Panah --}}
+    <span class="shrink-0 text-slate-300">
+        <svg class="h-5 w-5"
+             fill="none"
+             viewBox="0 0 24 24"
+             stroke-width="2"
+             stroke="currentColor">
+            <path stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+        </svg>
+    </span>
+
+</a>
+
+@empty
+
+<div class="px-5 py-10 text-center text-slate-500">
+    Belum ada pembayaran yang menunggu verifikasi.
+</div>
+
+@endforelse
+
+@if($pending->hasPages())
+
+<div class="flex items-center justify-between border-t border-slate-100 px-5 py-4">
+
+    <p class="text-sm text-slate-500">
+        Menampilkan
+        {{ $pending->firstItem() }}
+        -
+        {{ $pending->lastItem() }}
+        dari
+        {{ $pending->total() }}
+        pembayaran
+    </p>
+
+    {{ $pending->onEachSide(1)->links() }}
+
+</div>
+
+@endif
 
 </div>
 @endsection
