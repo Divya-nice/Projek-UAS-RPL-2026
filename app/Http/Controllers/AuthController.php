@@ -6,143 +6,186 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {
-    // Menampilkan halaman login
+    /**
+     * Menampilkan halaman login pelanggan.
+     * Jika sudah login, langsung arahkan ke halaman yang sesuai
+     * (bukan lewat middleware 'guest' bawaan, karena tidak ada route
+     * bernama 'dashboard'/'home' yang bisa jadi target defaultnya).
+     */
     public function showLogin()
     {
+        if (Auth::check()) {
+            return redirect()->route(Auth::user()->is_admin ? 'admin.dashboard' : 'pesanan.beranda');
+        }
+
         return view('auth.login');
     }
 
-    // Menampilkan halaman register
+    /**
+     * Menampilkan halaman register pelanggan.
+     */
     public function showRegister()
     {
+        if (Auth::check()) {
+            return redirect()->route(Auth::user()->is_admin ? 'admin.dashboard' : 'pesanan.beranda');
+        }
+
         return view('auth.register');
     }
 
-    // Proses register
+    /**
+     * Proses registrasi pelanggan.
+     */
     public function register(Request $request)
     {
-        $request->validate([
-            'name' => 'required',
-            'email' => 'required|email|unique:users,email',
-            'phone' => 'required',
-            'password' => 'required|min:8|confirmed',
+        $data = $request->validate([
+            'name'     => ['required', 'string', 'max:100'],
+            'email'    => ['required', 'email', 'max:100', 'unique:users,email'],
+            'phone'    => ['required', 'string', 'max:20'],
+            'password' => ['required', 'string', 'min:8', 'confirmed'],
         ]);
 
-        User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'phone' => $request->phone,
-            'password' => Hash::make($request->password),
+        $user = User::create([
+            'name'     => $data['name'],
+            'email'    => $data['email'],
+            'phone'    => $data['phone'],
+            'password' => Hash::make($data['password']),
         ]);
 
-        return redirect()->route('login')
-            ->with('success', 'Registrasi berhasil, silakan login.');
-    }
-
-    // Proses login
-   // Proses login
-public function login(Request $request)
-{
-    $credentials = $request->validate([
-        'email' => 'required|email',
-        'password' => 'required',
-    ]);
-
-    if (Auth::attempt($credentials)) {
+        Auth::login($user);
 
         $request->session()->regenerate();
 
-        if ($request->email === 'admin1@gmail.com') {
-            return redirect()->route('admin.dashboard');
+        return redirect()->route('pesanan.beranda')
+            ->with('success', 'Registrasi berhasil, selamat datang!');
+    }
+
+    /**
+     * Proses login pelanggan (form login biasa).
+     * Jika akun yang login adalah admin, arahkan ke dashboard admin.
+     */
+    public function login(Request $request)
+    {
+        $credentials = $request->validate([
+            'email'    => ['required', 'email'],
+            'password' => ['required'],
+        ]);
+
+        if (! Auth::attempt($credentials, $request->boolean('remember'))) {
+            throw ValidationException::withMessages([
+                'email' => 'Email atau password salah.',
+            ]);
         }
 
-        return redirect()->route('pesanan.beranda');
+        $request->session()->regenerate();
+
+        if (Auth::user()->is_admin) {
+            return redirect()->intended(route('admin.dashboard'));
+        }
+
+        return redirect()->intended(route('pesanan.beranda'));
     }
 
-    return back()->withErrors([
-        'email' => 'Email atau password salah.',
-    ]);
-}
+    /**
+     * Proses login khusus dari halaman /admin/login.
+     * Menolak akun yang bukan admin walau kredensialnya valid.
+     */
+    public function adminLogin(Request $request)
+    {
+        $credentials = $request->validate([
+            'email'    => ['required', 'email'],
+            'password' => ['required'],
+        ]);
 
-// Login Admin
-public function adminLogin(Request $request)
-{
-    $credentials = $request->validate([
-        'email' => 'required|email',
-        'password' => 'required',
-    ]);
+        if (! Auth::attempt($credentials)) {
+            throw ValidationException::withMessages([
+                'email' => 'Email atau password admin salah.',
+            ]);
+        }
 
-    if (Auth::attempt($credentials)) {
+        if (! Auth::user()->is_admin) {
+            Auth::logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+
+            throw ValidationException::withMessages([
+                'email' => 'Akun ini tidak memiliki akses admin.',
+            ]);
+        }
 
         $request->session()->regenerate();
 
-        return redirect('/admin/dashboard');
+        return redirect()->route('admin.dashboard');
     }
 
-    return back()->withErrors([
-        'email' => 'Email atau password admin salah.',
-    ]);
-}
-
-    // Logout
+    /**
+     * Logout (dipakai bersama oleh pelanggan & admin).
+     */
     public function logout(Request $request)
     {
+        $wasAdmin = Auth::check() && Auth::user()->is_admin;
+
         Auth::logout();
 
         $request->session()->invalidate();
-
         $request->session()->regenerateToken();
 
-        return redirect()->route('login');
+        return redirect()->route($wasAdmin ? 'admin.login' : 'login');
     }
+
+    /**
+     * Update profil admin (nama, email, telepon, foto).
+     */
     public function updateAdminProfile(Request $request)
-{
-    $request->validate([
-        'name' => 'required',
-        'email' => 'required|email',
-        'phone' => 'nullable',
-        'foto' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
-    ]);
+    {
+        $data = $request->validate([
+            'name'   => ['required', 'string', 'max:100'],
+            'email'  => ['required', 'email', 'max:100', 'unique:users,email,' . Auth::id()],
+            'phone'  => ['nullable', 'string', 'max:20'],
+            'alamat' => ['nullable', 'string', 'max:255'],
+            'foto'   => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:2048'],
+        ]);
 
-    $user = Auth::user();
+        $user = Auth::user();
 
-    $user->name = $request->name;
-    $user->email = $request->email;
-    $user->phone = $request->phone;
+        if ($request->hasFile('foto')) {
+            if (! empty($user->foto)) {
+                Storage::disk('public')->delete($user->foto);
+            }
 
-    if ($request->hasFile('foto')) {
-    $foto = $request->file('foto')->store('foto-profil', 'public');
-    $user->foto = $foto;
-}
-$user->foto = $foto;
+            $data['foto'] = $request->file('foto')->store('foto-profil', 'public');
+        }
 
-dd($user->getAttributes());
-$user->save();
+        $user->update($data);
 
-$user->refresh();
-dd($user->foto);
-
-    return back()->with('success', 'Profil berhasil diperbarui.');
-}
-public function updatePassword(Request $request)
-{
-    $request->validate([
-        'current_password' => 'required',
-        'new_password' => 'required|min:8|confirmed',
-    ]);
-
-    $user = Auth::user();
-
-    if (!Hash::check($request->current_password, $user->password)) {
-        return back()->with('error', 'Password lama salah.');
+        return back()->with('success', 'Profil berhasil diperbarui.');
     }
 
-    $user->password = Hash::make($request->new_password);
-    $user->save();
+    /**
+     * Update password (dipakai oleh admin & bisa dipakai pelanggan).
+     */
+    public function updatePassword(Request $request)
+    {
+        $data = $request->validate([
+            'current_password' => ['required'],
+            'new_password'     => ['required', 'string', 'min:8', 'confirmed'],
+        ]);
 
-    return back()->with('success', 'Password berhasil diubah.');
-}
+        $user = Auth::user();
+
+        if (! Hash::check($data['current_password'], $user->password)) {
+            return back()->with('error', 'Password lama salah.');
+        }
+
+        $user->update([
+            'password' => Hash::make($data['new_password']),
+        ]);
+
+        return back()->with('success', 'Password berhasil diubah.');
+    }
 }

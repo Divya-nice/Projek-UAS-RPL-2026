@@ -12,35 +12,117 @@
     </div>
 
     {{-- Filter --}}
-    <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+<div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+
+    <form method="GET" action="{{ route('admin.pesanan') }}">
         <div class="flex flex-col gap-3 lg:flex-row lg:items-center">
+
             <div class="relative flex-1">
-                <svg class="pointer-events-none absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" fill="none" viewBox="0 0 24 24" stroke-width="1.7" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" /></svg>
-                <input type="text" placeholder="Cari no. pesanan / nama / layanan" class="w-full rounded-xl border border-slate-200 py-2.5 pl-10 pr-3 text-sm text-slate-700 placeholder-slate-400 focus:border-[#1E7BC8] focus:outline-none focus:ring-2 focus:ring-[#1E7BC8]/20" />
+                <svg class="pointer-events-none absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke-width="1.7"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+                </svg>
+
+                <input
+                    type="text"
+                    name="search"
+                    value="{{ request('search') }}"
+                    placeholder="Cari no. pesanan / nama / layanan"
+                    class="w-full rounded-xl border border-slate-200 py-2.5 pl-10 pr-3 text-sm text-slate-700 placeholder-slate-400 focus:border-[#1E7BC8] focus:outline-none focus:ring-2 focus:ring-[#1E7BC8]/20">
             </div>
-            <select class="rounded-xl border border-slate-200 px-3 py-2.5 text-sm text-slate-600 focus:border-[#1E7BC8] focus:outline-none focus:ring-2 focus:ring-[#1E7BC8]/20">
-                <option>Semua status</option>
-                <option>Diproses</option>
-                <option>Dicuci</option>
-                <option>Dikeringkan</option>
-                <option>Siap Diambil</option>
-                <option>Selesai</option>
+
+            <select
+                name="status"
+                class="rounded-xl border border-slate-200 px-3 py-2.5 text-sm text-slate-600">
+
+                <option value="">Semua status</option>
+
+                <option value="Diproses"
+                    {{ request('status')=='Diproses'?'selected':'' }}>
+                    Diproses
+                </option>
+
+                <option value="Dicuci"
+                    {{ request('status')=='Dicuci'?'selected':'' }}>
+                    Dicuci
+                </option>
+
+                <option value="Dikeringkan"
+                    {{ request('status')=='Dikeringkan'?'selected':'' }}>
+                    Dikeringkan
+                </option>
+
+                <option value="Siap Diambil"
+                    {{ request('status')=='Siap Diambil'?'selected':'' }}>
+                    Siap Diambil
+                </option>
+
+                <option value="Selesai"
+                    {{ request('status')=='Selesai'?'selected':'' }}>
+                    Selesai
+                </option>
+
             </select>
-            <select class="rounded-xl border border-slate-200 px-3 py-2.5 text-sm text-slate-600 focus:border-[#1E7BC8] focus:outline-none focus:ring-2 focus:ring-[#1E7BC8]/20">
-                <option>Semua Layanan</option>
-                <option>Deep Cleaning</option>
-                <option>Regular Cleaning</option>
-                <option>Unyellowing</option>
-                <option>Repaint</option>
+
+            <select
+                name="layanan"
+                class="rounded-xl border border-slate-200 px-3 py-2.5 text-sm text-slate-600">
+
+                <option value="">Semua Layanan</option>
+
+                @foreach($layananList as $layanan)
+                    <option
+                        value="{{ $layanan->id }}"
+                        {{ request('layanan')==$layanan->id?'selected':'' }}>
+                        {{ $layanan->nama_layanan }}
+                    </option>
+                @endforeach
+
             </select>
-            <select class="rounded-xl border border-slate-200 px-3 py-2.5 text-sm text-slate-600 focus:border-[#1E7BC8] focus:outline-none focus:ring-2 focus:ring-[#1E7BC8]/20">
-                <option>Semua Tanggal</option>
-                <option>Hari Ini</option>
-                <option>Minggu Ini</option>
-                <option>Bulan Ini</option>
+
+            <select
+                name="tanggal"
+                class="rounded-xl border border-slate-200 px-3 py-2.5 text-sm text-slate-600">
+
+                <option value="">Semua Tanggal</option>
+
+                <option value="hari_ini"
+                    {{ request('tanggal')=='hari_ini'?'selected':'' }}>
+                    Hari Ini
+                </option>
+
+                <option value="minggu_ini"
+                    {{ request('tanggal')=='minggu_ini'?'selected':'' }}>
+                    Minggu Ini
+                </option>
+
+                <option value="bulan_ini"
+                    {{ request('tanggal')=='bulan_ini'?'selected':'' }}>
+                    Bulan Ini
+                </option>
+
             </select>
+
+            <button
+                type="submit"
+                class="rounded-xl bg-[#1E7BC8] px-5 py-2.5 text-sm font-medium text-white hover:bg-[#1769ab]">
+                Filter
+            </button>
+
+            <a
+                href="{{ route('admin.pesanan') }}"
+                class="rounded-xl border border-slate-300 px-5 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-50">
+                Reset
+            </a>
+
         </div>
-    </div>
+    </form>
+
+</div>
 
     {{-- Tabs --}}
     <div class="overflow-x-auto">
@@ -119,17 +201,13 @@
         </span>
 
         <span class="block text-xs text-slate-400">
-            {{ $item->user->phone }}
+            {{ $item->user->phone ?? '-'}}
         </span>
     </td>
 
     <td class="px-5 py-4">
         <span class="text-slate-700">
             {{ $item->layanan->nama_layanan }}
-        </span>
-
-        <span class="block text-xs text-slate-400">
-            {{ $item->jumlah_sepatu }} pasang
         </span>
     </td>
 
@@ -146,7 +224,20 @@
     </td>
 
     <td class="px-5 py-4">
-        {{ $item->status }}
+        @php
+            $statusClass = match($item->status){
+                'Diproses' => 'bg-blue-100 text-blue-700',
+                'Dicuci' => 'bg-pink-100 text-pink-700',
+                'Dikeringkan' => 'bg-orange-100 text-orange-700',
+                'Siap Diambil' => 'bg-green-100 text-green-700',
+                'Selesai' => 'bg-slate-200 text-slate-700',
+                default => 'bg-slate-100 text-slate-600',
+            };
+        @endphp
+
+        <span class="rounded-full px-3 py-1 text-xs font-semibold {{ $statusClass }}">
+            {{ $item->status }}
+        </span>
     </td>
 
     <td class="px-5 py-4 font-semibold">
@@ -167,10 +258,21 @@
 </tbody>
             </table>
         </div>
-        <div class="flex items-center gap-1 border-t border-slate-100 px-5 py-4 text-sm text-slate-500">
-            Menampilkan 1-3 dari 15 pesanan
-            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" /></svg>
-        </div>
+            <div class="flex items-center justify-between border-t border-slate-100 px-5 py-4">
+
+                <p class="text-sm text-slate-500">
+                    Menampilkan
+                    {{ $pesanan->firstItem() }}
+                    -
+                    {{ $pesanan->lastItem() }}
+                    dari
+                    {{ $pesanan->total() }}
+                    pesanan
+                </p>
+
+                {{ $pesanan->links() }}
+
+            </div>
     </div>
 
 </div>

@@ -8,7 +8,7 @@
     {{-- Judul --}}
     <div class="border-b border-slate-200 pb-5">
         <h1 class="text-2xl font-bold text-slate-900 sm:text-3xl">Dashboard Admin</h1>
-        <p class="mt-1 text-slate-500">Selamat datang kembali, Bapak Rudi!</p>
+        <p class="mt-1 text-slate-500">Selamat datang kembali, {{ auth()->user()->name }}!</p>
     </div>
 
     {{-- Kartu statistik --}}
@@ -65,7 +65,7 @@
             <div class="flex items-center gap-2">
                 <h2 class="text-lg font-bold text-slate-900">Pesanan yang Membutuhkan Tindakan</h2>
             </div>
-            <a href={{ route('admin.pesanan') }}" class="shrink-0 rounded-lg border border-slate-200 px-3 py-1.5 text-sm font-medium text-slate-600 hover:bg-slate-50">Lihat Semua</a>
+            <a href="{{ route('admin.pesanan') }}" class="shrink-0 rounded-lg border border-slate-200 px-3 py-1.5 text-sm font-medium text-slate-600 hover:bg-slate-50">Lihat Semua</a>
         </div>
         <p class="mt-1 mb-4 text-sm text-slate-500">Pesanan yang perlu segera Anda tindak lanjuti.</p>
 
@@ -142,7 +142,7 @@
                     <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke-width="1.7" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 0 0 2.25-2.25V6.75A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25v10.5A2.25 2.25 0 0 0 4.5 19.5Z" /></svg>
                 </span>
                 <div class="min-w-0 flex-1">
-                    <p class="font-semibold text-slate-800">2 Pembayaran menunggu verifikasi</p>
+                    <p class="font-semibold text-slate-800">{{ $pesananMenungguVerifikasi }} Pembayaran menunggu verifikasi</p>
                     <p class="text-sm text-slate-500">Segera lakukan verifikasi pembayaran pelanggan.</p>
                 </div>
                 <svg class="h-5 w-5 shrink-0 text-slate-400" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" /></svg>
@@ -152,7 +152,7 @@
                     <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke-width="1.7" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 7.5 12 3 3 7.5m18 0-9 4.5m9-4.5v9l-9 4.5m0-9L3 7.5m9 4.5v9m-9-13.5v9l9 4.5" /></svg>
                 </span>
                 <div class="min-w-0 flex-1">
-                    <p class="font-semibold text-slate-800">2 Pesanan siap diambil</p>
+                    <p class="font-semibold text-slate-800">{{ $pesananSiapDiambil }} Pesanan siap diambil</p>
                     <p class="text-sm text-slate-500">Informasikan ke pelanggan untuk pengambilan.</p>
                 </div>
                 <svg class="h-5 w-5 shrink-0 text-slate-400" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" /></svg>

@@ -3,261 +3,709 @@
 @section('title', 'Form Pemesanan — Cuci Sepatu')
 
 @section('content')
+
 @php
-    $petaHarga = collect($layanan)->mapWithKeys(function ($i, $slug) {
-    return [$slug => [
-        'nama'  => $i['nama'],
-        'harga' => $i['harga'],
-    ]];
+$petaHarga = collect($layanan)->mapWithKeys(function ($i, $slug) {
+    return [
+        $slug => [
+            'nama'   => $i['nama'],
+            'harga'  => $i['harga'],
+            'gambar' => $i['gambar'] ?? null,
+            'estimasi'  => $i['estimasi'] ?? '2-3 Hari',
+        ]
+    ];
 });
 
 $terpilih = $layanan[$slugTerpilih];
 @endphp
 
-<section class="bg-[#F2F7FD] py-10 lg:py-14">
-    <div class="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+<section class="bg-[#F5F8FD] py-10 min-h-screen">
+
+    <div class="mx-auto max-w-6xl px-4">
+
         {{-- Breadcrumb --}}
-        <nav class="mb-4 flex flex-wrap items-center gap-1.5 text-xs text-slate-400">
-            <a href="{{ route('pesanan.beranda') }}" class="hover:text-[#1E7BC8]">Beranda</a>
-            <span>/</span>
-            <a href="{{ route('pesanan.katalog') }}" class="hover:text-[#1E7BC8]">Pesan Layanan</a>
-            <span>/</span>
-            <span class="font-medium text-[#1566AD]">Data Pesanan</span>
+        <nav class="mb-5 flex items-center gap-2 text-xs text-slate-400">
+            <a href="{{ route('pesanan.beranda') }}" class="hover:text-[#1566AD]">
+                Beranda
+            </a>
+
+            <span>></span>
+
+            <a href="{{ route('pesanan.katalog') }}" class="hover:text-[#1566AD]">
+                Pesan Layanan
+            </a>
+
+            <span>></span>
+
+            <span class="font-semibold text-[#1566AD]">
+                Data Pesanan
+            </span>
         </nav>
 
-        <h1 class="text-2xl font-bold text-[#1E293B] sm:text-3xl">Data Pesanan</h1>
-        <p class="mt-1.5 text-sm text-slate-500">Lengkapi data pesanan Anda sebelum melanjutkan ke proses pengantaran.</p>
+        <h1 class="text-[42px] font-bold text-[#112A5A] leading-none">
+            Data Pesanan
+        </h1>
 
-        {{-- Stepper --}}
-        <div class="mt-8">
-            <x-step-indicator :current="1" />
+        <p class="mt-3 text-slate-500">
+            Lengkapi data pesanan Anda sebelum melanjutkan ke proses pengantaran.
+        </p>
+
+        {{-- Step Indicator --}}
+        <div class="mt-10">
+            <x-step-indicator :current="1"/>
         </div>
 
+        {{-- Error --}}
         @if($errors->any())
-            <div class="mt-6 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-600">
-                <p class="font-semibold">Mohon periksa kembali isian Anda:</p>
-                <ul class="mt-1.5 list-inside list-disc space-y-0.5">
+            <div class="mt-8 rounded-xl border border-red-200 bg-red-50 p-5 text-red-600">
+
+                <p class="font-semibold">
+                    Mohon periksa kembali isian Anda.
+                </p>
+
+                <ul class="mt-2 list-disc list-inside space-y-1">
                     @foreach($errors->all() as $error)
                         <li>{{ $error }}</li>
                     @endforeach
                 </ul>
+
             </div>
         @endif
 
-        <form method="POST" action="{{ route('pesanan.form.proses') }}" enctype="multipart/form-data" class="mt-8" id="form-pesanan">
+        <form
+            id="form-pesanan"
+            method="POST"
+            action="{{ route('pesanan.form.proses') }}"
+            enctype="multipart/form-data"
+            class="mt-8">
+
             @csrf
-            <input type="hidden" name="layanan" id="input-layanan" value="">
 
-            <div class="grid gap-6 lg:grid-cols-3">
-                {{-- Ringkasan layanan (sticky) --}}
-                <aside class="lg:col-span-1">
-                    <div class="sticky top-24 space-y-4">
-                        <div class="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-100">
-                            <div class="border-b border-slate-100 p-5">
-                                <h2 class="text-base font-bold text-[#1E293B]">Ringkasan Layanan</h2>
-                            </div>
-                            <div class="p-5">
+            <input
+                type="hidden"
+                name="layanan"
+                id="input-layanan">
 
-                                    <x-shoe-thumb :slug="\Illuminate\Support\Str::slug($terpilih['nama'])"
-                                    class="aspect-[4/3] w-full"/>
-                                </div>
-                                <p class="mt-4 text-sm font-semibold text-[#1566AD]" id="ringkas-nama">{{ $terpilih['nama'] }}</p>
-                                <p class="mt-1 text-2xl font-bold text-[#1E293B]" id="ringkas-harga">{{ \App\Http\Controllers\PesananController::rupiah($terpilih['harga']) }}</p>
+            <div class="grid gap-8 lg:grid-cols-3">
 
-                                <label class="mt-4 block text-xs font-medium text-slate-500">Ganti Layanan</label>
-                                <select id="pilih-layanan"
-                                    class="mt-1.5 w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 shadow-sm transition focus:border-[#1E7BC8] focus:outline-none focus:ring-2 focus:ring-[#1E7BC8]/30">
+                {{-- ========================= --}}
+                {{-- SIDEBAR --}}
+                {{-- ========================= --}}
+
+                <aside>
+
+                    <div class="sticky top-24 space-y-5">
+
+                        {{-- Ringkasan --}}
+                        <div class="rounded-xl bg-white shadow-lg shadow-slate-100 overflow-hidden">
+
+                            <div class="p-6">
+
+                                <h2 class="text-xl font-bold text-[#112A5A]">
+                                    Ringkasan Layanan
+                                </h2>
+
+                                @if(!empty($terpilih['gambar']))
+
+                                    <img
+                                        id="ringkas-gambar"
+                                        src="{{ asset('storage/'.$terpilih['gambar']) }}"
+                                        alt="{{ $terpilih['nama'] }}"
+                                        class="mt-6 h-56 w-full rounded-2xl object-cover">
+
+                                @else
+
+                                    <x-shoe-thumb
+                                        id="ringkas-gambar"
+                                        :slug="\Illuminate\Support\Str::slug($terpilih['nama'])"
+                                        class="mt-6 h-56 w-full rounded-2xl"/>
+
+                                @endif
+
+                                <p
+                                    id="ringkas-nama"
+                                    class="mt-5 text-[#1566AD] font-semibold">
+
+                                    {{ $terpilih['nama'] }}
+
+                                </p>
+
+                                <p
+                                    id="ringkas-harga"
+                                    class="mt-1 text-xl font-bold text-[#112A5A]">
+
+                                    {{ \App\Http\Controllers\PesananController::rupiah($terpilih['harga']) }}
+
+                                </p>
+
+                                <p
+                                    id="ringkas-estimasi"
+                                    class="class="mt-2 text-sm text-slate-500">
+
+                                    Estimasi : {{ $terpilih['estimasi'] ?? '2-3 Hari' }}                         
+
+                                </p>
+
+                                {{-- Dropdown layanan --}}
+                                <select
+                                    id="pilih-layanan"
+                                    class="mt-6 w-full rounded-xl border border-[#1566AD] bg-white px-4 py-3 text-center font-semibold text-[#1566AD]">
+
                                     @foreach($layanan as $slug => $item)
-                                        <option value="{{ $slug }}" data-harga="{{ $item['harga'] }}" @selected($slug === $slugTerpilih)>{{ $item['nama'] }} &mdash; {{ \App\Http\Controllers\PesananController::rupiah($item['harga']) }}</option>
+
+                                        <option
+                                            value="{{ $slug }}"
+                                            @selected($slug==$slugTerpilih)>
+
+                                            {{ $item['nama'] }}
+
+                                        </option>
+
                                     @endforeach
+
                                 </select>
+
                             </div>
+
                         </div>
 
-                        <div class="flex items-start gap-2.5 rounded-2xl bg-[#EAF3FC] p-4 text-xs leading-relaxed text-[#1566AD]">
-                            <x-icon name="shield-check" class="mt-0.5 h-4 w-4 shrink-0" />
-                            <span>Informasi: Pastikan seluruh data yang dimasukkan sudah benar sebelum melanjutkan ke langkah berikutnya.</span>
+                        {{-- Informasi --}}
+                        <div class="rounded-xl border border-blue-100 bg-[#EEF5FF] p-5">
+
+                            <div class="flex items-start gap-3">
+
+                                <x-icon
+                                    name="information-circle"
+                                    class="mt-0.5 h-5 w-5 text-[#1566AD]" />
+
+                                <p class="text-sm leading-7 text-[#1566AD]">
+
+                                    Informasi: Pastikan seluruh data yang
+                                    dimasukkan sudah benar sebelum melanjutkan
+                                    ke langkah berikutnya.
+
+                                </p>
+
+                            </div>
+
                         </div>
+
                     </div>
+
                 </aside>
 
-                {{-- Kolom form --}}
+                {{-- ========================= --}}
+                {{-- KONTEN --}}
+                {{-- ========================= --}}
+
                 <div class="space-y-6 lg:col-span-2">
+
                     {{-- Data Pelanggan --}}
-                    <div class="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-100">
-                        <h2 class="text-base font-bold text-[#1E293B]">Data Pelanggan</h2>
-                        <div class="mt-5 grid gap-5 sm:grid-cols-2">
+                    <div class="rounded-xl bg-white p-6 shadow-lg shadow-slate-100">
+
+                        <h2 class="text-lg font-bold text-[#112A5A]">
+                            Data Pelanggan
+                        </h2>
+
+                        <div class="mt-3 border-b border-slate-200"></div>
+
+                        <div class="mt-6 grid gap-5 sm:grid-cols-2">
+
+                            {{-- Nama --}}
                             <div>
-                                <label for="nama" class="mb-1.5 block text-sm font-medium text-slate-700">Nama Lengkap <span class="text-red-500">*</span></label>
-                                <input type="text" id="nama" name="nama" value="{{ old('nama') }}" placeholder="Nama lengkap Anda" required
-                                    class="block w-full rounded-lg border border-slate-200 px-3.5 py-2.5 text-sm text-slate-700 placeholder-slate-400 shadow-sm transition focus:border-[#1E7BC8] focus:outline-none focus:ring-2 focus:ring-[#1E7BC8]/30">
+
+                                <label
+                                    class="mb-2 block text-sm font-semibold text-[#243B6A]">
+
+                                    Nama Lengkap *
+
+                                </label>
+
+                                <input
+                                    type="text"
+                                    name="nama"
+                                    value="{{ old('nama') }}"
+                                    placeholder="Masukkan nama lengkap"
+                                    required
+                                    class="h-11 w-full rounded-lg border border-slate-300 bg-[#F8FAFD] px-4">
+
                             </div>
+
+                            {{-- Telepon --}}
                             <div>
-                                <label for="telepon" class="mb-1.5 block text-sm font-medium text-slate-700">Nomor Telepon / HP <span class="text-red-500">*</span></label>
-                                <input type="tel" id="telepon" name="telepon" value="{{ old('telepon') }}" placeholder="0812xxxxxxx" required
-                                    class="block w-full rounded-lg border border-slate-200 px-3.5 py-2.5 text-sm text-slate-700 placeholder-slate-400 shadow-sm transition focus:border-[#1E7BC8] focus:outline-none focus:ring-2 focus:ring-[#1E7BC8]/30">
+
+                                <label
+                                    class="mb-2 block text-sm font-semibold text-[#243B6A]">
+
+                                    Nomor Telepon / HP *
+
+                                </label>
+
+                                <input
+                                    type="text"
+                                    name="telepon"
+                                    value="{{ old('telepon') }}"
+                                    placeholder="08xxxxxxxxxx"
+                                    required
+                                    class="h-11 w-full rounded-lg border border-slate-300 bg-[#F8FAFD] px-4">
+
                             </div>
+
+                            {{-- Email --}}
                             <div class="sm:col-span-2">
-                                <label for="email" class="mb-1.5 block text-sm font-medium text-slate-700">Email (Opsional)</label>
-                                <input type="email" id="email" name="email" value="{{ old('email') }}" placeholder="contoh@email.com"
-                                    class="block w-full rounded-lg border border-slate-200 px-3.5 py-2.5 text-sm text-slate-700 placeholder-slate-400 shadow-sm transition focus:border-[#1E7BC8] focus:outline-none focus:ring-2 focus:ring-[#1E7BC8]/30">
+
+                                <label
+                                    class="mb-2 block text-sm font-semibold text-[#243B6A]">
+
+                                    Email (Opsional)
+
+                                </label>
+
+                                <input
+                                    type="email"
+                                    name="email"
+                                    value="{{ old('email') }}"
+                                    placeholder="contoh@email.com"
+                                    class="h-11 w-full rounded-xl border border-slate-300 bg-[#F8FAFD] px-4">
+
                             </div>
+
+                            {{-- Alamat --}}
                             <div class="sm:col-span-2">
-                                <label for="alamat" class="mb-1.5 block text-sm font-medium text-slate-700">Alamat Lengkap <span class="text-red-500">*</span></label>
-                                <textarea id="alamat" name="alamat" rows="2" placeholder="Jl. Contoh No. 12, Pontianak" required
-                                    class="block w-full rounded-lg border border-slate-200 px-3.5 py-2.5 text-sm text-slate-700 placeholder-slate-400 shadow-sm transition focus:border-[#1E7BC8] focus:outline-none focus:ring-2 focus:ring-[#1E7BC8]/30">{{ old('alamat') }}</textarea>
+
+                                <label
+                                    class="mb-2 block text-sm font-semibold text-[#243B6A]">
+
+                                    Alamat Lengkap *
+
+                                </label>
+
+                                <textarea
+                                    name="alamat"
+                                    rows="3"
+                                    required
+                                    placeholder="Masukkan alamat lengkap penjemputan"
+                                    class="w-full rounded-lg border border-slate-300 bg-[#F8FAFD] p-4">{{ old('alamat') }}</textarea>
+
                             </div>
+
                         </div>
+
                     </div>
 
-                    {{-- Detail Pesanan --}}
-                    <div class="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-100">
-                        <h2 class="text-base font-bold text-[#1E293B]">Detail Pesanan</h2>
-                        <div class="mt-5 space-y-5">
-                            <div>
-                                <label class="mb-1.5 block text-sm font-medium text-slate-700">Jenis Layanan</label>
-                                <input type="text" id="detail-layanan" value="{{ $terpilih['nama'] }}" readonly
-                                    class="block w-full cursor-not-allowed rounded-lg border border-slate-200 bg-[#F2F7FD] px-3.5 py-2.5 text-sm font-medium text-slate-600">
-                            </div>
+{{-- ========================= --}}
+{{-- Detail Pesanan --}}
+{{-- ========================= --}}
 
-                            <div>
-                                <label class="mb-1.5 block text-sm font-medium text-slate-700">Jumlah Sepatu <span class="text-red-500">*</span></label>
-                                <div class="inline-flex items-center overflow-hidden rounded-lg border border-slate-200">
-                                    <button type="button" data-qty="minus" class="flex h-10 w-10 items-center justify-center text-slate-500 transition hover:bg-slate-50" aria-label="Kurangi">
-                                        <x-icon name="minus" class="h-4 w-4" />
-                                    </button>
-                                    <input type="number" id="jumlah" name="jumlah" value="{{ old('jumlah', 1) }}" min="1" max="20" readonly
-                                        class="h-10 w-14 border-x border-slate-200 text-center text-sm font-semibold text-[#1E293B] focus:outline-none">
-                                    <button type="button" data-qty="plus" class="flex h-10 w-10 items-center justify-center bg-[#0F2A4A] text-white transition hover:bg-[#1566AD]" aria-label="Tambah">
-                                        <x-icon name="plus" class="h-4 w-4" />
-                                    </button>
-                                </div>
-                            </div>
+<div class="rounded-xl bg-white p-6 shadow-lg shadow-slate-100">
 
-                            {{-- Ukuran sepatu dinamis (di-render via JS) --}}
-                            <div id="wadah-ukuran" class="grid gap-4 sm:grid-cols-2"></div>
+    <h2 class="text-lg font-bold text-[#112A5A]">
+        Detail Pesanan
+    </h2>
 
-                            <div>
-                                <label for="catatan" class="mb-1.5 block text-sm font-medium text-slate-700">Catatan (Opsional)</label>
-                                <textarea id="catatan" name="catatan" rows="2" placeholder="Jelaskan tingkat kotoran atau keluhan spesifik pada sepatu"
-                                    class="block w-full rounded-lg border border-slate-200 px-3.5 py-2.5 text-sm text-slate-700 placeholder-slate-400 shadow-sm transition focus:border-[#1E7BC8] focus:outline-none focus:ring-2 focus:ring-[#1E7BC8]/30">{{ old('catatan') }}</textarea>
-                            </div>
-                        </div>
-                    </div>
+    <div class="mt-3 border-b border-slate-200"></div>
 
-                    {{-- Upload Foto --}}
-                    <div class="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-100">
-                        <h2 class="text-base font-bold text-[#1E293B]">Upload Foto Sepatu</h2>
-                        <div class="mt-5 grid gap-4 lg:grid-cols-3">
-                            <label for="foto" class="flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-slate-200 bg-[#FAFCFE] px-4 py-8 text-center transition hover:border-[#1E7BC8] hover:bg-[#F2F7FD] lg:col-span-2">
-                                <x-icon name="upload" class="h-8 w-8 text-[#1E7BC8]" />
-                                <span class="mt-3 text-sm font-medium text-slate-600">Klik untuk upload foto atau drag &amp; drop file di sini</span>
-                                <span class="mt-1 text-xs text-slate-400">JPG, PNG Maksimal 5 MB</span>
-                                <input type="file" id="foto" name="foto[]" accept="image/png,image/jpeg" multiple class="hidden">
-                            </label>
+    <div class="mt-6 space-y-5">
 
-                            <div class="rounded-xl bg-[#EAF3FC] p-4">
-                                <p class="text-sm font-semibold text-[#1566AD]">Tips Foto:</p>
-                                <ul class="mt-2 space-y-1.5 text-xs text-[#1566AD]">
-                                    <li class="flex items-center gap-1.5"><x-icon name="check-circle" class="h-3.5 w-3.5" /> Foto tampak depan</li>
-                                    <li class="flex items-center gap-1.5"><x-icon name="check-circle" class="h-3.5 w-3.5" /> Foto tampak samping</li>
-                                    <li class="flex items-center gap-1.5"><x-icon name="check-circle" class="h-3.5 w-3.5" /> Foto bagian belakang</li>
-                                    <li class="flex items-center gap-1.5"><x-icon name="check-circle" class="h-3.5 w-3.5" /> Pastikan foto jelas dan terang</li>
-                                </ul>
-                            </div>
-                        </div>
-                        <ul id="daftar-foto" class="mt-4 space-y-2"></ul>
-                    </div>
+        {{-- Jenis Layanan --}}
+        <div>
 
-                    {{-- Aksi --}}
-                    <div class="flex flex-col-reverse items-center justify-between gap-3 sm:flex-row">
-                        <a href="{{ route('pesanan.katalog') }}" class="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-6 py-3 text-sm font-semibold text-slate-600 shadow-sm transition hover:bg-slate-50 sm:w-auto">
-                            <x-icon name="arrow-left" class="h-4 w-4" /> Kembali
-                        </a>
-                        <button type="submit" class="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-[#1566AD] to-[#0F2A4A] px-6 py-3 text-sm font-semibold text-white shadow-md transition hover:opacity-95 focus:outline-none focus:ring-2 focus:ring-[#1E7BC8]/40 focus:ring-offset-2 sm:w-auto">
-                            Lanjut ke Pengantaran <x-icon name="arrow-right" class="h-4 w-4" />
-                        </button>
-                    </div>
-                </div>
+            <label
+                class="mb-2 block text-sm font-semibold text-[#243B6A]">
+
+                Jenis Layanan
+
+            </label>
+
+            <input
+                id="detail-layanan"
+                type="text"
+                value="{{ $terpilih['nama'] }}"
+                readonly
+                class="h-11 w-full rounded-lg border border-slate-300 bg-[#EEF4FC] px-5 text-slate-600">
+
+        </div>
+
+        {{-- Jumlah --}}
+        <div>
+
+            <label
+                class="mb-3 block text-sm font-semibold text-[#243B6A]">
+
+                Jumlah Sepatu *
+
+            </label>
+
+            <div
+                class="inline-flex overflow-hidden rounded-lg border border-slate-300">
+
+                <button
+                    type="button"
+                    data-qty="minus"
+                    class="flex h-10 w-10 items-center justify-center text-xl text-[#112A5A] hover:bg-slate-100">
+
+                    −
+
+                </button>
+
+                <input
+                    id="jumlah"
+                    name="jumlah"
+                    type="number"
+                    min="1"
+                    max="20"
+                    readonly
+                    value="{{ old('jumlah',1) }}"
+                    class="h-10 w-12 border-x border-slate-300 text-center text-xl font-bold">
+
+                <button
+                    type="button"
+                    data-qty="plus"
+                    class="flex h-10 w-10 items-center justify-center bg-[#112A5A] text-2xl text-white hover:bg-[#1566AD]">
+
+                    +
+
+                </button>
+
             </div>
-        </form>
+
+        </div>
+
+        {{-- Ukuran --}}
+            <div id="wadah-ukuran">
+            </div>
+
+        {{-- Catatan --}}
+        <div>
+
+            <label
+                class="mb-2 block text-sm font-semibold text-[#243B6A]">
+
+                Catatan (Opsional)
+
+            </label>
+
+            <textarea
+                name="catatan"
+                rows="4"
+                placeholder="Jelaskan tingkat kotoran atau keluhan spesifik pada sepatu"
+                class="w-full rounded-lg border border-slate-300 bg-[#F8FAFD] p-4">{{ old('catatan') }}</textarea>
+
+        </div>
+
+</div>
+
+{{-- ========================= --}}
+{{-- Upload Foto --}}
+{{-- ========================= --}}
+
+<div class="rounded-xl bg-white p-6 shadow-lg shadow-slate-100">
+
+    <h2 class="text-lg font-bold text-[#112A5A]">
+
+        Upload Foto Sepatu
+
+    </h2>
+
+    <div class="mt-6 grid gap-5 lg:grid-cols-3">
+
+        {{-- Upload --}}
+        <label
+            for="foto"
+            class="flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-slate-300 bg-white px-5 py-10 text-center lg:col-span-2">
+
+            <x-icon
+                name="upload"
+                class="h-10 w-10 text-slate-300"/>
+
+            <p
+                class="mt-4 text-lg font-semibold text-[#243B6A]">
+
+                Klik untuk upload foto atau drag & drop file di sini
+
+            </p>
+
+            <p
+                class="mt-1 text-sm text-slate-500">
+
+                JPG, PNG Maksimal 5 MB
+
+            </p>
+
+            <input
+                id="foto"
+                type="file"
+                name="foto"
+                accept=".jpg,.jpeg,.png"
+                class="hidden">
+
+        </label>
+
+        {{-- Tips --}}
+        <div
+            class="rounded-ll bg-[#DDEBFF] p-5">
+
+            <h4
+                class="font-bold text-[#112A5A]">
+
+                Tips Foto:
+
+            </h4>
+
+            <ul
+                class="mt-3 space-y-2 text-sm text-[#243B6A]">
+
+                <li class="flex gap-2">
+
+                    <x-icon
+                        name="check-circle"
+                        class="h-5 w-5 text-[#1566AD]"/>
+
+                    Foto tampak depan
+
+                </li>
+
+                <li class="flex gap-2">
+
+                    <x-icon
+                        name="check-circle"
+                        class="h-5 w-5 text-[#1566AD]"/>
+
+                    Foto tampak samping
+
+                </li>
+
+                <li class="flex gap-2">
+
+                    <x-icon
+                        name="check-circle"
+                        class="h-5 w-5 text-[#1566AD]"/>
+
+                    Foto bagian belakang
+
+                </li>
+
+                <li class="flex gap-2">
+
+                    <x-icon
+                        name="check-circle"
+                        class="h-5 w-5 text-[#1566AD]"/>
+
+                    Pastikan foto jelas dan terang
+
+                </li>
+
+            </ul>
+
+        </div>
+
     </div>
+
+    <ul
+        id="daftar-foto"
+        class="mt-5 space-y-3">
+
+    </ul>
+
+</div>
+
+{{-- ========================= --}}
+{{-- Tombol --}}
+{{-- ========================= --}}
+<div class="mt-8 flex items-center justify-end gap-8">
+    
+        href="{{ route('pesanan.katalog') }}"
+        class="mr-65 rounded-lg border border-slate-300 bg-white px-6 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50">
+
+        Kembali
+
+    </a>
+
+    <button
+        type="submit"
+        class="inline-flex items-center whitespace-nowrap rounded-lg bg-gradient-to-r from-[#1566AD] to-[#0F2A4A] px-6 py-2.5 text-sm font-semibold text-white shadow-md transition hover:opacity-95">
+
+        Lanjut ke Metode Pengantaran
+
+        <x-icon
+            name="arrow-right"
+            class="h-4 w-4"/>
+    </button>
+</div>
+
+</div>
+</div>
+
+</form>
+
+</div>
+
 </section>
 
 @push('scripts')
 <script>
-    (function () {
-        const petaHarga = @json($petaHarga);
-        const rupiah = (n) => 'Rp' + Number(n || 0).toLocaleString('id-ID');
 
-        const inputLayanan  = document.getElementById('input-layanan');
-        const pilihLayanan  = document.getElementById('pilih-layanan');
-        const ringkasNama   = document.getElementById('ringkas-nama');
-        const ringkasHarga  = document.getElementById('ringkas-harga');
-        const detailLayanan = document.getElementById('detail-layanan');
-        const inputJumlah   = document.getElementById('jumlah');
-        const wadahUkuran   = document.getElementById('wadah-ukuran');
+(function(){
 
-        function syncLayanan() {
-            const slug = pilihLayanan.value;
-            const data = petaHarga[slug];
-            if (! data) return;
-            inputLayanan.value  = slug;
-            ringkasNama.textContent  = data.nama;
-            ringkasHarga.textContent = rupiah(data.harga);
-            detailLayanan.value = data.nama;
+const petaHarga=@json($petaHarga);
+
+const rupiah=(n)=>'Rp'+Number(n).toLocaleString('id-ID');
+
+const inputLayanan=document.getElementById('input-layanan');
+
+const pilih=document.getElementById('pilih-layanan');
+
+const nama=document.getElementById('ringkas-nama');
+
+const harga=document.getElementById('ringkas-harga');
+
+const detail=document.getElementById('detail-layanan');
+
+const gambar=document.getElementById('ringkas-gambar');
+
+const estimasi = document.getElementById("ringkas-estimasi");
+
+const jumlah=document.getElementById('jumlah');
+
+const wadah=document.getElementById('wadah-ukuran');
+
+function renderUkuran() {
+
+    const jumlahSepatu = parseInt(jumlah.value) || 1;
+
+    const lama = [];
+
+    wadah.querySelectorAll("input").forEach(input => {
+        lama.push(input.value);
+    });
+
+    wadah.innerHTML = "";
+
+    for (let i = 0; i < jumlahSepatu; i++) {
+
+        const div = document.createElement("div");
+        div.className = "mb-4";
+
+        const label = document.createElement("label");
+        label.className = "mb-2 block text-sm font-semibold text-[#243B6A]";
+
+        if (jumlahSepatu === 1) {
+            label.textContent = "Ukuran Sepatu *";
+        } else {
+            label.textContent = "Ukuran Sepatu " + (i + 1) + " *";
         }
-        inputLayanan.value =
-        pilihLayanan.value;
-        syncLayanan();
 
-        pilihLayanan.addEventListener('change', syncLayanan);
+        const input = document.createElement("input");
 
-        function renderUkuran() {
-            const jumlah = parseInt(inputJumlah.value, 10) || 1;
-            const lama = {};
-            wadahUkuran.querySelectorAll('input').forEach((el, i) => { lama[i] = el.value; });
-            wadahUkuran.innerHTML = '';
-            for (let i = 0; i < jumlah; i++) {
-                const div = document.createElement('div');
-                div.innerHTML =
-                    '<label class="mb-1.5 block text-sm font-medium text-slate-700">Ukuran Sepatu ' + (i + 1) + ' <span class="text-red-500">*</span></label>' +
-                    '<input type="text" name="ukuran[]" required placeholder="mis. 42" ' +
-                    'class="block w-full rounded-lg border border-slate-200 px-3.5 py-2.5 text-sm text-slate-700 placeholder-slate-400 shadow-sm transition focus:border-[#1E7BC8] focus:outline-none focus:ring-2 focus:ring-[#1E7BC8]/30">';
-                if (lama[i]) div.querySelector('input').value = lama[i];
-                wadahUkuran.appendChild(div);
-            }
-        }
+        input.type = "text";
+        input.name = "ukuran[]";
+        input.required = true;
+        input.placeholder = "Contoh : 42";
+        input.value = lama[i] || "";
 
-        document.querySelectorAll('[data-qty]').forEach((btn) => {
-            btn.addEventListener('click', () => {
-                let val = parseInt(inputJumlah.value, 10) || 1;
-                val += btn.dataset.qty === 'plus' ? 1 : -1;
-                val = Math.min(20, Math.max(1, val));
-                inputJumlah.value = val;
-                renderUkuran();
-            });
-        });
+        input.className =
+            "h-14 w-full rounded-xl border border-slate-300 bg-[#F8FAFD] px-5";
 
+        div.appendChild(label);
+        div.appendChild(input);
 
-        const inputFoto  = document.getElementById('foto');
-        const daftarFoto = document.getElementById('daftar-foto');
-        inputFoto.addEventListener('change', () => {
-            daftarFoto.innerHTML = '';
-            Array.from(inputFoto.files).forEach((file) => {
-                const li = document.createElement('li');
-                li.className = 'flex items-center justify-between rounded-lg bg-[#F2F7FD] px-4 py-2.5 text-sm';
-                const kb = (file.size / 1024).toFixed(0);
-                li.innerHTML =
-                    '<span class="truncate font-medium text-slate-600">' + file.name + '</span>' +
-                    '<span class="ml-3 shrink-0 text-xs text-[#1E7BC8]">' + kb + ' KB</span>';
-                daftarFoto.appendChild(li);
-            });
-        });
+        wadah.appendChild(div);
+    }
 
-        syncLayanan();
-        renderUkuran();
-    })();
+}
+
+function syncLayanan(){
+
+    const slug = pilih.value;
+    const data = petaHarga[slug];
+
+    if(!data) return;
+
+    inputLayanan.value = slug;
+
+    nama.textContent = data.nama;
+
+    harga.textContent = rupiah(data.harga);
+
+    detail.value = data.nama;
+
+    estimasi.textContent = "Estimasi : " + data.estimasi;
+
+    if(data.gambar && gambar.tagName === "IMG"){
+
+        gambar.src = "{{ asset('storage') }}/" + data.gambar;
+
+        gambar.alt = data.nama;
+
+    }
+
+}
+
+syncLayanan();
+
+pilih.addEventListener("change",syncLayanan);
+
+document.querySelectorAll("[data-qty]").forEach(btn=>{
+
+btn.addEventListener("click",()=>{
+
+let val=parseInt(jumlah.value)||1;
+
+if(btn.dataset.qty==="plus"){
+
+val++;
+
+}else{
+
+val--;
+
+}
+
+if(val<1) val=1;
+if(val>20) val=20;
+
+jumlah.value=val;
+
+renderUkuran();
+
+});
+
+});
+
+const foto=document.getElementById("foto");
+
+const daftar=document.getElementById("daftar-foto");
+
+foto.addEventListener("change",()=>{
+
+daftar.innerHTML="";
+
+Array.from(foto.files).forEach(file=>{
+
+const li=document.createElement("li");
+
+li.className="rounded-xl bg-[#EEF4FC] px-5 py-3 flex justify-between";
+
+li.innerHTML=`
+
+<span class="truncate">${file.name}</span>
+
+<span>${Math.round(file.size/1024)} KB</span>
+
+`;
+
+daftar.appendChild(li);
+
+});
+
+});
+
+syncLayanan();
+
+renderUkuran();
+
+})();
 </script>
 @endpush
+
 @endsection

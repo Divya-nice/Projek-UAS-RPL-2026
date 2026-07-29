@@ -26,12 +26,12 @@
                         <h2 class="text-base font-bold text-[#1E293B]">Data Pelanggan</h2>
                     </div>
                     <dl class="mt-4 space-y-3 text-sm">
-                        <div class="flex justify-between gap-4"><dt class="text-slate-500">Nama</dt><dd class="text-right font-medium text-slate-700">{{ $pesanan['nama'] }}</dd></div>
-                        <div class="flex justify-between gap-4"><dt class="text-slate-500">Telepon</dt><dd class="text-right font-medium text-slate-700">{{ $pesanan['telepon'] }}</dd></div>
+                        <div class="flex justify-between gap-4"><dt class="text-slate-500">Nama</dt><dd class="text-right font-medium text-slate-700">{{ $pesanan['nama'] ?? '-' }}</dd></div>
+                        <div class="flex justify-between gap-4"><dt class="text-slate-500">Telepon</dt><dd class="text-right font-medium text-slate-700">{{ $pesanan['telepon'] ?? '-' }}</dd></div>
                         @if(! empty($pesanan['email']))
                             <div class="flex justify-between gap-4"><dt class="text-slate-500">Email</dt><dd class="text-right font-medium text-slate-700">{{ $pesanan['email'] }}</dd></div>
                         @endif
-                        <div class="flex justify-between gap-4"><dt class="text-slate-500">Alamat</dt><dd class="text-right font-medium text-slate-700">{{ $pesanan['alamat'] }}</dd></div>
+                        <div class="flex justify-between gap-4"><dt class="text-slate-500">Alamat</dt><dd class="text-right font-medium text-slate-700">{{ $pesanan['alamat'] ?? '-' }}</dd></div>
                     </dl>
                 </div>
 
@@ -42,9 +42,9 @@
                         <h2 class="text-base font-bold text-[#1E293B]">Detail Pesanan</h2>
                     </div>
                     <dl class="mt-4 space-y-3 text-sm">
-                        <div class="flex justify-between gap-4"><dt class="text-slate-500">Layanan</dt><dd class="text-right font-medium text-slate-700">{{ $pesanan['layanan_nama'] }}</dd></div>
-                        <div class="flex justify-between gap-4"><dt class="text-slate-500">Estimasi</dt><dd class="text-right font-medium text-slate-700">{{ $pesanan['estimasi'] }}</dd></div>
-                        <div class="flex justify-between gap-4"><dt class="text-slate-500">Jumlah</dt><dd class="text-right font-medium text-slate-700">{{ $pesanan['jumlah'] }} pasang</dd></div>
+                        <div class="flex justify-between gap-4"><dt class="text-slate-500">Layanan</dt><dd class="text-right font-medium text-slate-700">{{ $pesanan['layanan_nama'] ?? '-'}}</dd></div>
+                        <div class="flex justify-between gap-4"><dt class="text-slate-500">Estimasi</dt><dd class="text-right font-medium text-slate-700">{{ $pesanan['estimasi']?? '-'}}</dd></div>
+                        <div class="flex justify-between gap-4"><dt class="text-slate-500">Jumlah</dt><dd class="text-right font-medium text-slate-700">{{ $pesanan['jumlah'] ?? 0}} pasang</dd></div>
                         @if(! empty($pesanan['ukuran']))
                             <div class="flex justify-between gap-4"><dt class="text-slate-500">Ukuran</dt><dd class="text-right font-medium text-slate-700">{{ implode(', ', $pesanan['ukuran']) }}</dd></div>
                         @endif
@@ -60,17 +60,47 @@
                         <x-icon name="truck" class="h-5 w-5 text-[#1E7BC8]" />
                         <h2 class="text-base font-bold text-[#1E293B]">Metode Pengantaran</h2>
                     </div>
+                    
                     <dl class="mt-4 space-y-3 text-sm">
+                        
                         <div class="flex justify-between gap-4">
                             <dt class="text-slate-500">Metode</dt>
-                            <dd class="text-right font-medium text-slate-700">{{ $pesanan['metode'] === 'jemput' ? 'Dijemput oleh Pemilik' : 'Antar Sendiri' }}</dd>
+                            <dd class="text-right font-medium text-slate-700">
+                                {{ ($pesanan['metode'] ?? '') === 'jemput'
+                                    ? 'Dijemput oleh Pemilik'
+                                    : 'Antar Sendiri' }}
+                            </dd>
                         </div>
-                        @if($pesanan['metode'] === 'jemput')
-                            <div class="flex justify-between gap-4"><dt class="text-slate-500">Kecamatan</dt><dd class="text-right font-medium text-slate-700">{{ $pesanan['kecamatan'] ?? '-' }}</dd></div>
-                            @if(! empty($pesanan['alamat_jemput']))
-                                <div class="flex justify-between gap-4"><dt class="text-slate-500">Alamat Jemput</dt><dd class="text-right font-medium text-slate-700">{{ $pesanan['alamat_jemput'] }}</dd></div>
+
+                        @if(($pesanan['metode'] ?? '') === 'jemput')
+
+                            <div class="flex justify-between gap-4">
+                                <dt class="text-slate-500">Kecamatan</dt>
+                                <dd class="text-right font-medium text-slate-700">
+                                    {{ $pesanan['kecamatan'] ?? '-' }}
+                                </dd>
+                            </div>
+
+                            <div class="flex justify-between gap-4">
+                                <dt class="text-slate-500">Alamat Jemput</dt>
+                                <dd class="text-right font-medium text-slate-700">
+                                    {{ $pesanan['alamat_jemput'] ?? '-' }}
+                                </dd>
+                            </div>
+
+                            @if(!empty($pesanan['alamat_jemput']))
+                                <div class="mt-4 overflow-hidden rounded-xl border">
+                                    <iframe
+                                        class="h-56 w-full"
+                                        loading="lazy"
+                                        style="border:0"
+                                        src="https://maps.google.com/maps?q={{ urlencode(($pesanan['alamat_jemput'] ?? '').', '.($pesanan['kecamatan'] ?? '').', Pontianak') }}&z=16&output=embed">
+                                    </iframe>
+                                </div>
                             @endif
+
                         @endif
+
                     </dl>
                 </div>
             </div>
@@ -81,7 +111,7 @@
                     <div class="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-100">
                         <h2 class="text-base font-bold text-[#1E293B]">Rincian Biaya</h2>
                         <dl class="mt-4 space-y-3 text-sm">
-                            <div class="flex justify-between"><dt class="text-slate-500">Subtotal ({{ $pesanan['jumlah'] }}x)</dt><dd class="font-medium text-slate-700">{{ $rp($pesanan['subtotal']) }}</dd></div>
+                            <div class="flex justify-between"><dt class="text-slate-500">Subtotal ({{ $pesanan['jumlah'] ?? 0 }} × {{ $pesanan['layanan_nama'] ?? '-' }})</dt><dd class="font-medium text-slate-700">{{ $rp($pesanan['subtotal'])}}</dd></div>
                             <div class="flex justify-between"><dt class="text-slate-500">Ongkos Jemput</dt><dd class="font-medium text-slate-700">{{ $rp($pesanan['ongkos_jemput'] ?? 0) }}</dd></div>
                             <div class="mt-2 flex justify-between border-t border-dashed border-slate-200 pt-3">
                                 <dt class="text-base font-bold text-[#1E293B]">Total</dt>

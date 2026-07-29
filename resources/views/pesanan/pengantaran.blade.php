@@ -26,6 +26,17 @@
         {{-- Stepper --}}
         <div class="mt-8">
             <x-step-indicator :current="2" />
+            @if(session('info'))
+                <div class="mt-6 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-700">
+                    {{ session('info') }}
+                </div>
+            @endif
+
+            @if(session('success'))
+                <div class="mt-6 rounded-xl border border-green-200 bg-green-50 p-4 text-sm text-green-700">
+                    {{ session('success') }}
+                </div>
+            @endif
         </div>
 
         @if($errors->any())
@@ -150,55 +161,147 @@
 
 @push('scripts')
 <script>
-    (function () {
-        const rupiah = (n) => 'Rp' + Number(n || 0).toLocaleString('id-ID');
-        const detailJemput = document.getElementById('detail-jemput');
-        const kecamatan    = document.getElementById('kecamatan');
-        const labelOngkir  = document.getElementById('label-ongkir');
-        const alamatJemput = document.getElementById('alamat_jemput');
-        const peta         = document.getElementById('peta-jemput');
-        let petaTimer;
+document.addEventListener('DOMContentLoaded', function () {
 
-        function hitungOngkir() {
-            const opt = kecamatan.options[kecamatan.selectedIndex];
-            labelOngkir.textContent = rupiah(opt ? opt.dataset.ongkir : 0);
-        }
+    const detailJemput = document.getElementById('detail-jemput');
+    const kecamatan    = document.getElementById('kecamatan');
+    const alamat       = document.getElementById('alamat_jemput');
+    const labelOngkir  = document.getElementById('label-ongkir');
+    const peta         = document.getElementById('peta-jemput');
 
-        function updatePeta() {
-            const opt    = kecamatan.options[kecamatan.selectedIndex];
-            const kec    = opt ? opt.value : '';
-            const alamat = (alamatJemput.value || '').trim();
-            const query  = [alamat, kec, 'Pontianak'].filter(Boolean).join(', ');
-            peta.src = 'https://maps.google.com/maps?q=' + encodeURIComponent(query) + '&z=15&output=embed';
-        }
+    function rupiah(angka){
+        return 'Rp' + Number(angka || 0).toLocaleString('id-ID');
+    }
 
-        function syncMetode() {
-            const metode = document.querySelector('input[name=metode]:checked').value;
-            document.querySelectorAll('.metode-opsi').forEach((label) => {
-                const dipilih = label.querySelector('input').checked;
-                label.classList.toggle('border-[#1E7BC8]', dipilih);
-                label.classList.toggle('bg-[#F2F7FD]', dipilih);
-                label.classList.toggle('border-slate-200', ! dipilih);
-                label.classList.toggle('bg-white', ! dipilih);
-                const cek = label.querySelector('.metode-cek');
-                cek.classList.toggle('hidden', ! dipilih);
-                cek.classList.toggle('flex', dipilih);
-            });
-            detailJemput.style.display = metode === 'jemput' ? '' : 'none';
-            kecamatan.required = metode === 'jemput';
-        }
+    // ==========================
+    // METODE PENGANTARAN
+    // ==========================
+    function syncMetode(){
 
-        document.querySelectorAll('input[name=metode]').forEach((r) => r.addEventListener('change', syncMetode));
-        kecamatan.addEventListener('change', () => { hitungOngkir(); updatePeta(); });
-        alamatJemput.addEventListener('input', () => {
-            clearTimeout(petaTimer);
-            petaTimer = setTimeout(updatePeta, 700);
+        const checked = document.querySelector('input[name="metode"]:checked');
+
+        if(!checked) return;
+
+        const metode = checked.value;
+
+        document.querySelectorAll('.metode-opsi').forEach(function(card){
+
+            const radio = card.querySelector('input[type="radio"]');
+            const aktif = radio.checked;
+
+            card.classList.toggle('border-[#1E7BC8]', aktif);
+            card.classList.toggle('bg-[#F2F7FD]', aktif);
+
+            card.classList.toggle('border-slate-200', !aktif);
+            card.classList.toggle('bg-white', !aktif);
+
+            const cek = card.querySelector('.metode-cek');
+
+            if(cek){
+                cek.classList.toggle('hidden', !aktif);
+                cek.classList.toggle('flex', aktif);
+            }
+
         });
 
-        syncMetode();
-        hitungOngkir();
-        updatePeta();
-    })();
+        if(metode === 'jemput'){
+            detailJemput.classList.remove('hidden');
+            detailJemput.style.display = '';
+            kecamatan.required = true;
+            alamat.required = true;
+        }else{
+            detailJemput.classList.add('hidden');
+            detailJemput.style.display = 'none';
+            kecamatan.required = false;
+            alamat.required = false;
+        }
+
+    }
+
+    // ==========================
+    // ONGKIR
+    // ==========================
+    function updateOngkir(){
+
+        if(!kecamatan) return;
+
+        const option = kecamatan.options[kecamatan.selectedIndex];
+
+        if(option){
+            labelOngkir.innerHTML = rupiah(option.dataset.ongkir);
+        }
+
+    }
+
+    // ==========================
+    // GOOGLE MAPS
+    // ==========================
+    function updateMap(){
+
+        if(!peta) return;
+
+        const kec = kecamatan.value || '';
+
+        const addr = alamat.value.trim();
+
+        let lokasi = '';
+
+        if(addr !== ''){
+            lokasi = addr + ', ' + kec + ', Pontianak';
+        }else{
+            lokasi = kec + ', Pontianak';
+        }
+
+        peta.src =
+            'https://maps.google.com/maps?q=' +
+            encodeURIComponent(lokasi) +
+            '&z=16&output=embed';
+
+    }
+
+    // ==========================
+    // EVENT
+    // ==========================
+
+    document.querySelectorAll('input[name="metode"]').forEach(function(radio){
+
+        radio.addEventListener('change', syncMetode);
+
+    });
+
+    kecamatan.addEventListener('change', function(){
+
+        updateOngkir();
+        updateMap();
+
+    });
+
+    let typing;
+
+    alamat.addEventListener('input', function(){
+
+        clearTimeout(typing);
+
+        typing = setTimeout(function(){
+
+            updateMap();
+
+        },400);
+
+    });
+
+    // ==========================
+    // LOAD AWAL
+    // ==========================
+
+    syncMetode();
+
+    updateOngkir();
+
+    updateMap();
+
+});
 </script>
 @endpush
+
 @endsection

@@ -5,7 +5,7 @@
 @section('content')
 @php
     $rp = fn ($n) => \App\Http\Controllers\PesananController::rupiah($n);
-    $kodeUrl = ltrim($pesanan['kode'], '#');
+    $kodeUrl = $pesanan->nomor_pesanan;
 @endphp
 
 <section class="bg-[#F2F7FD] py-10 lg:py-14">
@@ -20,7 +20,7 @@
         </nav>
 
         <h1 class="text-2xl font-bold text-[#1E293B] sm:text-3xl">Upload Bukti Pembayaran</h1>
-        <p class="mt-1.5 text-sm text-slate-500">Unggah bukti transfer Anda untuk pesanan {{ $pesanan['kode'] }} ({{ $rp($pesanan['total']) }}).</p>
+        <p class="mt-1.5 text-sm text-slate-500">Unggah bukti transfer Anda untuk pesanan {{ $pesanan->nomor_pesanan }} ({{ $rp($pesanan->total_biaya) }}).</p>
 
         <div class="mt-8">
             <x-step-indicator :current="4" />

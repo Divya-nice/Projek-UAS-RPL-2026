@@ -2,6 +2,7 @@
     'slug',
     'nama',
     'harga',
+    'gambar' => null,
     'estimasi' => null,
     'deskripsi' => '',
     'populer' => false,
@@ -10,12 +11,19 @@
 <div class="group overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition duration-300 hover:shadow-lg">
 
     <div class="relative h-44 overflow-hidden">
+        @if($gambar)
+        <img
+            src="{{ asset('storage/'.$gambar) }}"
+            alt="{{ $nama }}"
+            class="h-full w-full object-cover">
+        @else
         <x-shoe-thumb
             :slug="$slug"
             fit="cover"
             :alt="$nama"
             class="h-full w-full"
-        />
+            />
+        @endif
 
         @if($populer)
             <span class="absolute right-3 top-3 rounded-full bg-[#1E7BC8] px-2.5 py-1 text-xs font-semibold text-white shadow">

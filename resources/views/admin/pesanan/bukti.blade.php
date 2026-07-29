@@ -5,7 +5,7 @@
 <div class="container">
     <h2>Upload Bukti Pembayaran</h2>
 
-    <p>Nomor Pesanan: {{ $pesanan->nomor_pesanan }}</p>
+    <p>Nomor Pesanan: #{{ $pesanan->nomor_pesanan }}</p>
     <p>Total Bayar: Rp{{ number_format($pesanan->total_biaya) }}</p>
 
     <form action="{{ route('pesanan.bukti.proses', $pesanan->nomor_pesanan) }}" 
