@@ -15,9 +15,9 @@
         <div class="flex flex-wrap items-center gap-3">
             <button type="button" class="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-50">
                 <svg class="h-5 w-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke-width="1.7" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" /></svg>
-                {{ $transaksi->count() > 0
-    ? $transaksi->first()->created_at->format('d M Y') . ' - ' .
-      $transaksi->last()->created_at->format('d M Y')
+                {{ $semuaTransaksi->count() > 0
+    ? $semuaTransaksi->last()->created_at->format('d M Y') . ' - ' .
+      $semuaTransaksi->first()->created_at->format('d M Y')
     : 'Belum ada transaksi'
 }}
                 <svg class="h-4 w-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" /></svg>
@@ -42,7 +42,7 @@
     Rp{{ number_format($totalPendapatan, 0, ',', '.') }}
 </p>
             <p class="mt-1 text-xs text-slate-400">
-    {{ $transaksi->count() }} transaksi selesai
+    {{ $totalTransaksi }} transaksi selesai
 </p>
         </div>
         {{-- Total Transaksi --}}
@@ -52,7 +52,7 @@
             </span>
             <p class="mt-4 text-sm text-slate-500">Total Transaksi</p>
             <p class="mt-1 text-2xl font-bold text-slate-900">
-    {{ $transaksi->count() }}
+    {{ $totalTransaksi }}
 </p>
             <p class="mt-1 text-xs text-slate-400">Transaksi selesai</p>
         </div>
@@ -63,14 +63,7 @@
             </span>
             <p class="mt-4 text-sm text-slate-500">Rata-rata Nilai Transaksi</p>
             <p class="mt-1 text-2xl font-bold text-slate-900">
-    Rp{{ number_format(
-        $transaksi->count() > 0
-            ? $totalPendapatan / $transaksi->count()
-            : 0,
-        0,
-        ',',
-        '.'
-    ) }}
+    Rp{{ number_format($rataRataTransaksi, 0, ',', '.') }}
 </p>
             <p class="mt-1 text-xs text-slate-400">Per transaksi</p>
         </div>
@@ -90,6 +83,37 @@
         <div class="mt-5 grid gap-6 lg:grid-cols-3">
             {{-- Chart --}}
             <div class="lg:col-span-2">
+                @php
+                    // Mengubah kumpulan [label, total] menjadi titik-titik SVG
+                    // (x,y) di dalam area chart (x: 20-480, y: 50-200), tanpa
+                    // mengubah ukuran/gaya kanvas aslinya. Data totalnya benar-benar
+                    // berasal dari database (lihat AdminController@laporan).
+                    $buatTitik = function ($dataset) {
+                        $jumlah = $dataset->count();
+                        $max = $dataset->max('total');
+                        $max = $max > 0 ? $max : 1;
+
+                        $step = $jumlah > 1 ? (480 - 20) / ($jumlah - 1) : 0;
+
+                        return $dataset->values()->map(function ($item, $i) use ($step, $max) {
+                            $x = 20 + ($step * $i);
+                            $y = 200 - (($item['total'] / $max) * 150);
+
+                            return [
+                                'x' => round($x, 1),
+                                'y' => round($y, 1),
+                                'label' => $item['label'],
+                            ];
+                        });
+                    };
+
+                    $titikHarian = $buatTitik($chartHarian);
+                    $titikMingguan = $buatTitik($chartMingguan);
+                    $titikBulanan = $buatTitik($chartBulanan);
+
+                    $keGaris = fn ($titik) => $titik->map(fn ($t) => "{$t['x']},{$t['y']}")->implode(' ');
+                    $keArea = fn ($titik) => 'M' . $keGaris($titik) . " L480,200 L20,200 Z";
+                @endphp
                 <svg viewBox="0 0 500 220" class="h-64 w-full" preserveAspectRatio="none">
                     <defs>
                         <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
@@ -105,35 +129,29 @@
 
                     {{-- Harian --}}
                     <g data-chart="harian">
-                        <path d="M20,170 L77.5,150 L135,158 L192.5,120 L250,130 L307.5,90 L365,100 L422.5,60 L480,55 L480,200 L20,200 Z" fill="url(#areaGrad)" />
-                        <polyline points="20,170 77.5,150 135,158 192.5,120 250,130 307.5,90 365,100 422.5,60 480,55" fill="none" stroke="#1E7BC8" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round" />
-                        <text x="20"  y="215" font-size="11" fill="#94A3B8">1 MEI</text>
-                        <text x="130" y="215" font-size="11" fill="#94A3B8">7 MEI</text>
-                        <text x="235" y="215" font-size="11" fill="#94A3B8">14 MEI</text>
-                        <text x="345" y="215" font-size="11" fill="#94A3B8">21 MEI</text>
-                        <text x="450" y="215" font-size="11" fill="#94A3B8">31 MEI</text>
+                        <path d="{{ $keArea($titikHarian) }}" fill="url(#areaGrad)" />
+                        <polyline points="{{ $keGaris($titikHarian) }}" fill="none" stroke="#1E7BC8" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round" />
+                        @foreach ($titikHarian as $t)
+                            <text x="{{ $t['x'] }}" y="215" font-size="11" fill="#94A3B8" text-anchor="middle">{{ $t['label'] }}</text>
+                        @endforeach
                     </g>
 
                     {{-- Mingguan --}}
                     <g data-chart="mingguan" class="hidden">
-                        <path d="M20,175 L135,140 L250,120 L365,80 L480,50 L480,200 L20,200 Z" fill="url(#areaGrad)" />
-                        <polyline points="20,175 135,140 250,120 365,80 480,50" fill="none" stroke="#1E7BC8" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round" />
-                        <text x="20"  y="215" font-size="11" fill="#94A3B8">MINGGU 1</text>
-                        <text x="130" y="215" font-size="11" fill="#94A3B8">MINGGU 2</text>
-                        <text x="240" y="215" font-size="11" fill="#94A3B8">MINGGU 3</text>
-                        <text x="350" y="215" font-size="11" fill="#94A3B8">MINGGU 4</text>
-                        <text x="430" y="215" font-size="11" fill="#94A3B8">MINGGU 5</text>
+                        <path d="{{ $keArea($titikMingguan) }}" fill="url(#areaGrad)" />
+                        <polyline points="{{ $keGaris($titikMingguan) }}" fill="none" stroke="#1E7BC8" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round" />
+                        @foreach ($titikMingguan as $t)
+                            <text x="{{ $t['x'] }}" y="215" font-size="11" fill="#94A3B8" text-anchor="middle">{{ $t['label'] }}</text>
+                        @endforeach
                     </g>
 
                     {{-- Bulanan --}}
                     <g data-chart="bulanan" class="hidden">
-                        <path d="M20,180 L135,150 L250,110 L365,80 L480,55 L480,200 L20,200 Z" fill="url(#areaGrad)" />
-                        <polyline points="20,180 135,150 250,110 365,80 480,55" fill="none" stroke="#1E7BC8" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round" />
-                        <text x="20"  y="215" font-size="11" fill="#94A3B8">JAN</text>
-                        <text x="130" y="215" font-size="11" fill="#94A3B8">FEB</text>
-                        <text x="240" y="215" font-size="11" fill="#94A3B8">MAR</text>
-                        <text x="350" y="215" font-size="11" fill="#94A3B8">APR</text>
-                        <text x="455" y="215" font-size="11" fill="#94A3B8">MEI</text>
+                        <path d="{{ $keArea($titikBulanan) }}" fill="url(#areaGrad)" />
+                        <polyline points="{{ $keGaris($titikBulanan) }}" fill="none" stroke="#1E7BC8" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round" />
+                        @foreach ($titikBulanan as $t)
+                            <text x="{{ $t['x'] }}" y="215" font-size="11" fill="#94A3B8" text-anchor="middle">{{ $t['label'] }}</text>
+                        @endforeach
                     </g>
                 </svg>
             </div>
@@ -144,7 +162,6 @@
         Ringkasan Periode
     </p>
 
-    {{-- TEMPEL KODE BARU DI SINI --}}
     <div class="mt-4 space-y-3 text-sm">
 
         <div class="flex items-center justify-between gap-3">
@@ -178,16 +195,10 @@
     </div>
 
 
-
-                <div class="mt-4 border-t border-slate-200 pt-4">
-                    <p class="flex items-center gap-2 text-xs font-medium text-slate-400"><span class="h-2 w-2 rounded-full bg-[#1E7BC8]"></span> Layanan Terlaris</p>
-                    <p class="mt-1 font-semibold text-slate-800">
-    {{ $layananTerlaris?->first()?->layanan?->nama_layanan ?? 'Belum ada data' }}
-</p>
-
-<p class="text-sm text-slate-500">
-    {{ $layananTerlaris?->count() ?? 0 }} Transaksi
-</p>
+    <div class="mt-4 border-t border-slate-200 pt-4">
+        <p class="flex items-center gap-2 text-xs font-medium text-slate-400"><span class="h-2 w-2 rounded-full bg-[#1E7BC8]"></span> Layanan Terlaris</p>
+        <p class="mt-1 font-semibold text-slate-800">{{ $namaLayananTerlaris }}</p>
+        <p class="text-sm text-slate-500">{{ $jumlahLayananTerlaris }} Transaksi ({{ $persentaseLayananTerlaris }}%)</p>
                 </div>
             </div>
         </div>
@@ -197,18 +208,27 @@
     <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
         <div class="flex flex-col gap-3 border-b border-slate-100 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
             <h2 class="text-lg font-bold text-slate-900">Daftar Transaksi Selesai</h2>
-            <div class="flex items-center gap-3">
+            <form method="GET" action="{{ route('admin.laporan') }}" class="flex items-center gap-3">
                 <div class="relative">
                     <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
                         <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" /></svg>
                     </span>
-                    <input type="text" placeholder="Cari nomor pesanan atau nama pelanggan" class="w-full rounded-lg border border-slate-200 py-2 pl-9 pr-3 text-sm text-slate-600 placeholder-slate-400 focus:border-[#1E7BC8] focus:outline-none focus:ring-2 focus:ring-[#1E7BC8]/20 sm:w-72" />
+                    <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari nomor pesanan atau nama pelanggan" class="w-full rounded-lg border border-slate-200 py-2 pl-9 pr-3 text-sm text-slate-600 placeholder-slate-400 focus:border-[#1E7BC8] focus:outline-none focus:ring-2 focus:ring-[#1E7BC8]/20 sm:w-72" />
                 </div>
-                <button type="button" class="inline-flex items-center gap-2 rounded-lg border border-slate-200 px-3.5 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50">
+                <select name="tanggal" onchange="this.form.submit()" class="rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-600 focus:border-[#1E7BC8] focus:outline-none focus:ring-2 focus:ring-[#1E7BC8]/20">
+                    <option value="semua" {{ request('tanggal','semua')=='semua'?'selected':'' }}>Semua Tanggal</option>
+                    <option value="hari_ini" {{ request('tanggal')=='hari_ini'?'selected':'' }}>Hari Ini</option>
+                    <option value="minggu_ini" {{ request('tanggal')=='minggu_ini'?'selected':'' }}>Minggu Ini</option>
+                    <option value="bulan_ini" {{ request('tanggal')=='bulan_ini'?'selected':'' }}>Bulan Ini</option>
+                </select>
+                <button type="submit" class="inline-flex items-center gap-2 rounded-lg border border-slate-200 px-3.5 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50">
                     <svg class="h-4 w-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3c2.755 0 5.455.232 8.083.678.533.09.917.556.917 1.096v1.044a2.25 2.25 0 0 1-.659 1.591l-5.432 5.432a2.25 2.25 0 0 0-.659 1.591v2.927a2.25 2.25 0 0 1-1.244 2.013L9.75 21v-6.568a2.25 2.25 0 0 0-.659-1.591L3.659 7.409A2.25 2.25 0 0 1 3 5.818V4.774c0-.54.384-1.006.917-1.096A48.32 48.32 0 0 1 12 3Z" /></svg>
                     Filter
                 </button>
-            </div>
+                @if(request()->hasAny(['search','tanggal']))
+                    <a href="{{ route('admin.laporan') }}" class="text-sm font-medium text-slate-500 hover:text-slate-700">Reset</a>
+                @endif
+            </form>
         </div>
         <div class="overflow-x-auto">
             <table class="w-full min-w-[820px] text-left text-sm">
@@ -225,7 +245,7 @@
                 </thead>
                 <tbody class="divide-y divide-slate-100">
 
-    @foreach ($transaksi as $t)
+    @forelse ($transaksi as $t)
 
         <tr class="hover:bg-slate-50/70">
 
@@ -246,7 +266,7 @@
             </td>
 
             <td class="px-5 py-4 text-slate-500">
-                {{ $t->metode_pembayaran ?? '-' }}
+                {{ $t->metode_bayar ?? '-' }}
             </td>
 
             <td class="px-5 py-4 font-semibold text-slate-700">
@@ -261,28 +281,29 @@
 
         </tr>
 
-    @endforeach
+    @empty
+
+        <tr>
+            <td colspan="7" class="px-5 py-8 text-center text-slate-500">
+                Belum ada transaksi yang cocok.
+            </td>
+        </tr>
+
+    @endforelse
 
 </tbody>
-                </tbody>
             </table>
         </div>
         {{-- Footer pagination --}}
         <div class="flex flex-col gap-3 border-t border-slate-100 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
-            <p class="text-sm text-slate-500">Menampilkan 1 - 10 dari 128 transaksi</p>
-            <div class="flex items-center gap-1">
-                <button type="button" class="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 text-slate-400 hover:bg-slate-50">
-                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" /></svg>
-                </button>
-                <button type="button" class="flex h-8 w-8 items-center justify-center rounded-lg bg-[#1566AD] text-sm font-semibold text-white">1</button>
-                <button type="button" class="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 text-sm font-medium text-slate-600 hover:bg-slate-50">2</button>
-                <button type="button" class="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 text-sm font-medium text-slate-600 hover:bg-slate-50">3</button>
-                <span class="px-1 text-slate-400">...</span>
-                <button type="button" class="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 text-sm font-medium text-slate-600 hover:bg-slate-50">13</button>
-                <button type="button" class="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50">
-                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" /></svg>
-                </button>
-            </div>
+            <p class="text-sm text-slate-500">
+                @if($transaksi->total() > 0)
+                    Menampilkan {{ $transaksi->firstItem() }} - {{ $transaksi->lastItem() }} dari {{ $transaksi->total() }} transaksi
+                @else
+                    Tidak ada transaksi
+                @endif
+            </p>
+            {{ $transaksi->onEachSide(1)->links() }}
         </div>
     </div>
 

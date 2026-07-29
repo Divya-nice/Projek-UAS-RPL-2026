@@ -28,7 +28,7 @@
     <div class="grid grid-cols-1 gap-px overflow-hidden rounded-2xl border border-slate-200 bg-slate-200 shadow-sm sm:grid-cols-2 lg:grid-cols-4">
         <div class="flex items-center gap-3 bg-white p-4">
             <span class="flex h-10 w-10 items-center justify-center rounded-lg bg-[#EAF3FC] text-[#1566AD]"><svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="1.7" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 10.5V6a3.75 3.75 0 1 0-7.5 0v4.5m11.356-1.993 1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 0 1-1.12-1.243l1.264-12A1.125 1.125 0 0 1 5.513 7.5h12.974c.576 0 1.059.435 1.119 1.007Z" /></svg></span>
-            <div><p class="text-xs text-slate-400">Nomor Pesanan</p><p class="font-semibold text-slate-800">{{ $pesanan->nomor_pesanan }}</p></div>
+            <div><p class="text-xs text-slate-400">Nomor Pesanan</p><p class="font-semibold text-slate-800">#{{ $pesanan->nomor_pesanan }}</p></div>
         </div>
         <div class="flex items-center gap-3 bg-white p-4">
             <span class="flex h-10 w-10 items-center justify-center rounded-lg bg-[#EAF3FC] text-[#1566AD]"><svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="1.7" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" /></svg></span>
@@ -62,7 +62,6 @@
                                 src="https://maps.google.com/maps?q={{ urlencode($pesanan->alamat) }}&output=embed"
                                 class="h-full w-full"
                                 loading="lazy"></iframe>
-                            </iframe>
                         </div>
                     </div>
                 </div>
@@ -109,7 +108,7 @@
                 <div class="flex-1 space-y-3">
                     <div><p class="text-xs text-slate-400">Metode</p><p class="font-semibold text-slate-700">{{ $pesanan->metode_pengantaran }}</p></div>
                     <div><p class="text-xs text-slate-400">Alamat Penjemputan</p><p class="text-sm text-slate-600">{{ $pesanan->alamat }}</p></div>
-                    <div class="flex items-center justify-between border-t border-slate-100 pt-3"><p class="text-sm text-slate-500">Biaya Antar/Jemput</p><p class="font-semibold text-[#1566AD]">Rp{{ number_format($pesanan->biaya_antar ?? 0,0,',','.') }}</p></div>
+                    <div class="flex items-center justify-between border-t border-slate-100 pt-3"><p class="text-sm text-slate-500">Biaya Antar/Jemput</p><p class="font-semibold text-[#1566AD]">Rp{{ number_format($pesanan->ongkos_jemput ?? 0,0,',','.') }}</p></div>
                 </div>
             </div>
         </div>
@@ -117,10 +116,10 @@
         <div class="{{ $labelCard }}">
             <p class="{{ $cardTitle }}">Informasi Pembayaran</p>
             <div class="space-y-3 text-sm">
-                <div class="flex items-center justify-between"><p class="text-slate-500">Metode Pembayaran</p><p class="font-semibold text-slate-700">{{ $pesanan->metode_pembayaran }}</p></div>
+                <div class="flex items-center justify-between"><p class="text-slate-500">Metode Pembayaran</p><p class="font-semibold text-slate-700">{{ $pesanan->metode_bayar }}</p></div>
                 <div class="flex items-center justify-between"><p class="text-slate-500">Status</p><span class="inline-flex rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-700">{{ ucwords(str_replace('_',' ',$pesanan->status_pembayaran)) }}</span></div>
                 <div class="flex items-center justify-between border-t border-slate-100 pt-3"><p class="text-slate-500">Subtotal Layanan</p><p class="text-slate-700">Rp{{ number_format($pesanan->layanan->harga * $pesanan->jumlah_sepatu,0,',','.') }}</p></div>
-                <div class="flex items-center justify-between"><p class="text-slate-500">Biaya Tambahan</p><p class="text-slate-700">Rp{{ number_format($pesanan->biaya_antar ?? 0,0,',','.') }}</p></div>
+                <div class="flex items-center justify-between"><p class="text-slate-500">Biaya Tambahan</p><p class="text-slate-700">Rp{{ number_format($pesanan->ongkos_jemput ?? 0,0,',','.') }}</p></div>
                 <div class="flex items-center justify-between border-t border-slate-100 pt-3"><p class="font-semibold text-slate-700">Total Pembayaran</p><p class="text-lg font-bold text-[#1566AD]">Rp{{ number_format($pesanan->total_biaya,0,',','.') }}</p></div>
                 <button type="button" data-bukti-open class="mt-2 flex w-full items-center justify-center gap-2 rounded-xl bg-[#EAF3FC] py-2.5 text-sm font-semibold text-[#1566AD] hover:bg-[#dceaf8]">
                     <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="1.7" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" /></svg>
@@ -161,7 +160,7 @@
 
         <div class="mt-4">
             <label class="text-sm text-slate-500">Catatan Admin (Internal)</label>
-            <textarea rows="3" placeholder="Tambahkan catatan pengerjaan di sini..." class="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm text-slate-700 placeholder-slate-400 focus:border-[#1E7BC8] focus:outline-none focus:ring-2 focus:ring-[#1E7BC8]/20"></textarea>
+            <textarea name="catatan_admin" rows="3" placeholder="Tambahkan catatan pengerjaan di sini..." class="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm text-slate-700 placeholder-slate-400 focus:border-[#1E7BC8] focus:outline-none focus:ring-2 focus:ring-[#1E7BC8]/20">{{ old('catatan_admin', $pesanan->catatan_admin) }}</textarea>
         </div>
 
         <div class="mt-5 flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">

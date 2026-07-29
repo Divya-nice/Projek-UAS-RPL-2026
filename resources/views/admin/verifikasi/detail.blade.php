@@ -34,7 +34,7 @@
     <div class="flex items-center justify-between">
         <p class="text-slate-500">No. Pesanan</p>
         <p class="font-semibold text-slate-700">
-            {{ $pesanan->nomor_pesanan }}
+            #{{ $pesanan->nomor_pesanan }}
         </p>
     </div>
 
@@ -94,25 +94,64 @@
 
 </div>
 
-        {{-- Kanan: Bukti pembayaran --}}
-        <div class="{{ $labelCard }}">
-            <p class="{{ $cardTitle }}">Bukti Pembayaran Pelanggan</p>
-            <button type="button" data-bukti-open class="group relative flex h-72 w-full items-center justify-center overflow-hidden rounded-xl bg-slate-100">
-                <span class="px-6 text-center text-sm text-slate-400">Bukti pembayaran belum diunggah pelanggan.</span>
-                <img src="{{ asset('images/bukti-pembayaran.jpg') }}" alt="Bukti pembayaran pelanggan" class="absolute inset-0 h-full w-full bg-slate-100 object-contain" onerror="this.remove()" />
-                <span class="absolute bottom-3 right-3 flex items-center gap-1.5 rounded-lg bg-slate-900/70 px-2.5 py-1 text-xs font-medium text-white opacity-0 transition group-hover:opacity-100">
-                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.7" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" /><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" /></svg>
-                    Perbesar
-                </span>
-            </button>
-            <p class="mt-2 text-center text-xs text-slate-400">Klik gambar untuk memperbesar</p>
-        </div>
+{{-- Kanan: Bukti pembayaran --}}
+<div class="{{ $labelCard }}">
+
+@if($pesanan->metode_bayar == 'cod' || $pesanan->metode_bayar == 'cash')
+
+    <p class="{{ $cardTitle }}">Pembayaran COD / Cash</p>
+
+    <div class="flex h-72 items-center justify-center rounded-xl bg-blue-50">
+
+        <p class="text-center text-sm text-blue-700">
+            Pembayaran dilakukan saat pengantaran.<br>
+            Tidak ada bukti transfer yang perlu diverifikasi.
+        </p>
+
     </div>
+
+@else
+
+    <p class="{{ $cardTitle }}">Bukti Pembayaran Pelanggan</p>
+
+    <button type="button"
+            data-bukti-open
+            class="group relative flex h-72 w-full items-center justify-center overflow-hidden rounded-xl bg-slate-100">
+
+        @if($pesanan->bukti_pembayaran)
+
+            <img
+                src="{{ asset('storage/'.$pesanan->bukti_pembayaran) }}"
+                alt="Bukti Pembayaran"
+                class="absolute inset-0 h-full w-full object-contain">
+
+            <span class="absolute bottom-3 right-3 flex items-center gap-1.5 rounded-lg bg-slate-900/70 px-2.5 py-1 text-xs font-medium text-white opacity-0 transition group-hover:opacity-100">
+                Perbesar
+            </span>
+
+        @else
+
+            <span class="px-6 text-center text-sm text-slate-400">
+                Bukti pembayaran belum diunggah pelanggan.
+            </span>
+
+        @endif
+
+    </button>
+
+    <p class="mt-2 text-center text-xs text-slate-400">
+        Klik gambar untuk memperbesar
+    </p>
+
+@endif
+</div>
+</div>
 
 {{-- Aksi verifikasi --}}
 <div class="{{ $labelCard }}">
 
     <p class="{{ $cardTitle }}">Tindakan Verifikasi</p>
+
 
     @if($pesanan->status_pembayaran == 'menunggu_verifikasi')
 
@@ -128,11 +167,6 @@
                 <button
                     type="submit"
                     class="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-red-200 px-5 py-2.5 text-sm font-semibold text-red-500 hover:bg-red-50">
-
-                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M6 18L18 6M6 6l12 12" />
-                    </svg>
 
                     Tolak Pembayaran
 
@@ -152,11 +186,6 @@
                     type="submit"
                     class="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-green-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-green-700">
 
-                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="m4.5 12.75 6 6 9-13.5" />
-                    </svg>
-
                     Terima Pembayaran
 
                 </button>
@@ -165,6 +194,7 @@
 
         </div>
 
+
     @elseif($pesanan->status_pembayaran == 'diterima')
 
         <div class="rounded-xl border border-green-200 bg-green-50 p-4 text-sm text-green-700">
@@ -172,18 +202,20 @@
             Status pesanan sudah berubah menjadi <strong>Diproses</strong>.
         </div>
 
+
     @elseif($pesanan->status_pembayaran == 'ditolak')
 
         <div class="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
             Pembayaran telah ditolak oleh admin.
         </div>
 
+
     @else
 
         <div class="rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">
-            Pelanggan belum mengunggah bukti pembayaran.
-            Tombol verifikasi akan muncul setelah pelanggan mengunggah bukti pembayaran.
+            Menunggu pelanggan mengunggah bukti pembayaran.
         </div>
+
 
     @endif
 
@@ -197,17 +229,20 @@
         </button>
         <p class="mb-3 px-1 text-sm font-semibold text-slate-700">Bukti Pembayaran</p>
         <div class="relative flex h-96 items-center justify-center overflow-hidden rounded-xl bg-slate-100">
-            @if (!empty($pesanan['bukti']))
-    <img
-        src="{{ asset('storage/' . $pesanan['bukti']) }}"
-        alt="Bukti pembayaran pelanggan"
-        class="absolute inset-0 h-full w-full bg-slate-100 object-contain"
-    >
-@else
-    <span class="px-6 text-center text-sm text-slate-400">
-        Bukti pembayaran belum diunggah pelanggan.
-    </span>
-@endif
+            @if($pesanan->bukti_pembayaran)
+
+            <img
+                src="{{ asset('storage/'.$pesanan->bukti_pembayaran) }}"
+                alt="Bukti Pembayaran"
+                class="absolute inset-0 h-full w-full object-contain">
+
+            @else
+
+            <span class="px-6 text-center text-sm text-slate-400">
+                Bukti pembayaran belum diunggah pelanggan.
+            </span>
+
+            @endif
         </div>
     </div>
 </div>

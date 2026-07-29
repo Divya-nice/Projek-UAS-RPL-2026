@@ -33,15 +33,15 @@
                 {{-- Detail --}}
                 <div class="lg:col-span-3">
                     <p class="text-[11px] uppercase tracking-wide text-slate-400">Informasi Pesanan</p>
-                    <p class="mt-1 text-xl font-bold tracking-wide text-[#1566AD]">{{ $pesanan['kode'] }}</p>
-                    <p class="text-xs text-slate-400">{{ $pesanan['tanggal'] }} &bull; {{ $pesanan['waktu'] ?? '' }}</p>
+                    <p class="mt-1 text-xl font-bold tracking-wide text-[#1566AD]">{{ $pesanan->nomor_pesanan }}</p>
+                    <p class="text-xs text-slate-400">{{ $pesanan->created_at->format('d M Y') }} • {{ $pesanan->created_at->format('H:i') }}</p>
 
                     <dl class="mt-5 grid grid-cols-2 gap-x-4 gap-y-5 text-sm">
-                        <div><dt class="text-[11px] uppercase tracking-wide text-slate-400">Jenis Layanan</dt><dd class="mt-0.5 font-semibold text-[#1E293B]">{{ $pesanan['layanan'] }}</dd></div>
-                        <div><dt class="text-[11px] uppercase tracking-wide text-slate-400">Jumlah Sepatu</dt><dd class="mt-0.5 font-semibold text-[#1E293B]">{{ $pesanan['jumlah'] }} Pasang</dd></div>
-                        <div><dt class="text-[11px] uppercase tracking-wide text-slate-400">Metode Pengantaran</dt><dd class="mt-0.5 font-semibold text-[#1E293B]">{{ $pesanan['pengiriman'] }}</dd></div>
-                        <div><dt class="text-[11px] uppercase tracking-wide text-slate-400">Ongkos Jemput</dt><dd class="mt-0.5 font-semibold text-[#1E293B]">{{ $rp($pesanan['ongkos'] ?? 0) }}</dd></div>
-                        <div class="col-span-2"><dt class="text-[11px] uppercase tracking-wide text-slate-400">Alamat Penjemputan</dt><dd class="mt-0.5 font-semibold text-[#1E293B]">{{ $pesanan['alamat'] }}</dd></div>
+                        <div><dt class="text-[11px] uppercase tracking-wide text-slate-400">Jenis Layanan</dt><dd class="mt-0.5 font-semibold text-[#1E293B]">{{ $pesanan->layanan->nama_layanan }}</dd></div>
+                        <div><dt class="text-[11px] uppercase tracking-wide text-slate-400">Jumlah Sepatu</dt><dd class="mt-0.5 font-semibold text-[#1E293B]">{{ $pesanan->jumlah_sepatu }} Pasang</dd></div>
+                        <div><dt class="text-[11px] uppercase tracking-wide text-slate-400">Metode Pengantaran</dt><dd class="mt-0.5 font-semibold text-[#1E293B]">{{ ucfirst($pesanan->metode_pengantaran) }}</dd></div>
+                        <div><dt class="text-[11px] uppercase tracking-wide text-slate-400">Ongkos Jemput</dt><dd class="mt-0.5 font-semibold text-[#1E293B]">{{ $rp($pesanan->ongkos_jemput ?? 0) }}</dd></div>
+                        <div class="col-span-2"><dt class="text-[11px] uppercase tracking-wide text-slate-400">Alamat Penjemputan</dt><dd class="mt-0.5 font-semibold text-[#1E293B]">{{ $pesanan->alamat }}</dd></div>
                     </dl>
                 </div>
 
@@ -49,7 +49,7 @@
                 <div class="space-y-4 rounded-2xl bg-[#F2F7FD] p-5 lg:col-span-2">
                     <div>
                         <p class="text-[11px] uppercase tracking-wide text-slate-400">Total Pembayaran</p>
-                        <p class="mt-1 text-2xl font-bold text-[#1566AD]">{{ $rp($pesanan['total']) }}</p>
+                        <p class="mt-1 text-2xl font-bold text-[#1566AD]">{{ $rp($pesanan->total_biaya) }}</p>
                     </div>
                     <div>
                         <p class="text-[11px] uppercase tracking-wide text-slate-400">Status Pesanan</p>

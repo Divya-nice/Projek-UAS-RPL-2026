@@ -21,13 +21,14 @@ class Pesanan extends Model
         'ukuran_sepatu',
         'foto_sepatu',
         'metode_pengantaran',
-        'metode_bayar',
         'pin_lokasi',
         'ongkos_jemput',
         'total_biaya',
         'status',
+        'catatan_admin',
         'bukti_pembayaran',
         'status_pembayaran',
+        'metode_bayar',
     ];
 
     protected function casts(): array
@@ -37,15 +38,30 @@ class Pesanan extends Model
         ];
     }
 
-
     public function layanan()
     {
         return $this->belongsTo(Layanan::class);
     }
 
-
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    /**
+     * Alias untuk kolom `metode_bayar`.
+     *
+     * Beberapa view (mis. admin.verifikasi.detail, admin.laporan.index)
+     * memanggil `$pesanan->metode_pembayaran`, padahal kolom di database
+     * bernama `metode_bayar`. Sebelumnya ini membuat pengecekan metode
+     * COD/transfer di halaman verifikasi selalu bernilai null/false,
+     * sehingga tampilan & aksi verifikasi untuk pesanan COD tidak pernah
+     * muncul dengan benar. Accessor ini menyambungkan nama atribut yang
+     * dipakai di view ke kolom yang sebenarnya ada, tanpa perlu mengubah
+     * Blade maupun struktur tabel.
+     */
+    public function getMetodePembayaranAttribute(): ?string
+    {
+        return $this->metode_bayar;
     }
 }

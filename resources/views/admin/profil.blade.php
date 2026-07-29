@@ -53,7 +53,7 @@
             </div>
             <div>
                 <label class="mb-1.5 block text-sm font-medium text-slate-700">Alamat Usaha</label>
-                <textarea name="alamat" rows="3" class="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm text-slate-700 focus:border-[#1E7BC8] focus:outline-none focus:ring-2 focus:ring-[#1E7BC8]/20">Jl. Ahmad Yani No. 12, Pontianak</textarea>
+                <textarea name="alamat" rows="3" class="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm text-slate-700 focus:border-[#1E7BC8] focus:outline-none focus:ring-2 focus:ring-[#1E7BC8]/20">{{ old('alamat', Auth::user()->alamat) }}</textarea>
             </div>
         </div>
 

@@ -74,7 +74,7 @@
                             <span class="text-sm font-semibold text-[#1E293B]">Transfer Bank</span>
                         </label>
                         <label class="bayar-opsi flex cursor-pointer items-center gap-3 rounded-xl border-2 border-slate-200 bg-white px-4 py-3.5 transition">
-                            <input type="radio" name="metode_bayar" value="cod" class="accent-[#1E7BC8]" @checked($metodeLama === 'cash')>
+                            <input type="radio" name="metode_bayar" value="cod" class="accent-[#1E7BC8]" @checked($metodeLama === 'cod')>
                             <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-[#EAF3FC] text-[#1566AD]"><x-icon name="wallet" class="h-4 w-4" /></span>
                             <span class="text-sm font-semibold text-[#1E293B]">Cash (Bayar di Tempat)</span>
                         </label>

@@ -68,14 +68,21 @@
           rows="4"
           placeholder="Jelaskan detail layanan..."
           class="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm text-slate-700 placeholder-slate-400 focus:border-[#1E7BC8] focus:outline-none focus:ring-2 focus:ring-[#1E7BC8]/20">{{ old('deskripsi', $layanan->deskripsi ?? '') }}</textarea>
+            </div>
 
             <div>
                 <label class="mb-1.5 block text-sm font-medium text-slate-700">Gambar Layanan</label>
                 <div class="flex items-center justify-center rounded-xl border-2 border-dashed border-slate-200 px-4 py-8 text-center">
                     <div>
-                        <svg class="mx-auto h-9 w-9 text-slate-300" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5" /></svg>
+                        <div id="preview-gambar-wrapper" class="mx-auto mb-3 h-28 w-28 overflow-hidden rounded-lg bg-slate-100 {{ ($layanan->gambar ?? null) ? '' : 'hidden' }}">
+                            <img id="preview-gambar"
+                                 src="{{ ($layanan->gambar ?? null) ? asset('storage/' . $layanan->gambar) : '' }}"
+                                 alt="Pratinjau gambar layanan"
+                                 class="h-full w-full object-cover">
+                        </div>
+                        <svg id="placeholder-gambar" class="mx-auto h-9 w-9 text-slate-300 {{ ($layanan->gambar ?? null) ? 'hidden' : '' }}" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5" /></svg>
                         <p class="mt-2 text-sm text-slate-500">Klik untuk unggah gambar</p>
-                        <input type="file" name="gambar" accept="image/*" class="mt-3 text-sm text-slate-500 file:mr-3 file:rounded-lg file:border-0 file:bg-[#EAF3FC] file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-[#1566AD]" />
+                        <input id="input-gambar" type="file" name="gambar" accept="image/*" class="mt-3 text-sm text-slate-500 file:mr-3 file:rounded-lg file:border-0 file:bg-[#EAF3FC] file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-[#1566AD]" />
                     </div>
                 </div>
             </div>
@@ -91,4 +98,34 @@
     </form>
 
 </div>
+
+@push('scripts')
+<script>
+    (function () {
+        const input = document.getElementById('input-gambar');
+        const wrapper = document.getElementById('preview-gambar-wrapper');
+        const img = document.getElementById('preview-gambar');
+        const placeholder = document.getElementById('placeholder-gambar');
+
+        if (!input) return;
+
+        input.addEventListener('change', function () {
+            const file = input.files && input.files[0];
+
+            if (!file) return;
+
+            const reader = new FileReader();
+
+            reader.onload = function (e) {
+                img.src = e.target.result;
+                wrapper.classList.remove('hidden');
+                placeholder.classList.add('hidden');
+            };
+
+            reader.readAsDataURL(file);
+        });
+    })();
+</script>
+@endpush
+
 @endsection

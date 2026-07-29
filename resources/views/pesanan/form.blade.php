@@ -373,7 +373,7 @@ $terpilih = $layanan[$slugTerpilih];
 
         {{-- Ukuran --}}
             <div id="wadah-ukuran">
-
+            </div>
 
         {{-- Catatan --}}
         <div>
@@ -392,8 +392,6 @@ $terpilih = $layanan[$slugTerpilih];
                 class="w-full rounded-lg border border-slate-300 bg-[#F8FAFD] p-4">{{ old('catatan') }}</textarea>
 
         </div>
-
-    </div>
 
 </div>
 
@@ -515,7 +513,7 @@ $terpilih = $layanan[$slugTerpilih];
 {{-- Tombol --}}
 {{-- ========================= --}}
 <div class="mt-8 flex items-center justify-end gap-8">
-    <a
+    
         href="{{ route('pesanan.katalog') }}"
         class="mr-65 rounded-lg border border-slate-300 bg-white px-6 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50">
 

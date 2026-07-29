@@ -27,7 +27,7 @@
         @endif
 
         {{-- Search --}}
-        <div class="relative mt-6">
+        <form method="GET" action="{{ route('pesanan.riwayat') }}" class="relative mt-6">
             <span class="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.7" stroke="currentColor" class="h-5 w-5">
                     <path stroke-linecap="round" stroke-linejoin="round"
@@ -37,9 +37,11 @@
 
             <input id="cari-pesanan"
                    type="text"
+                   name="search"
+                   value="{{ request('search') }}"
                    placeholder="Cari nomor pesanan atau layanan..."
                    class="w-full rounded-xl border border-slate-200 bg-white py-3 pl-12 pr-4 text-sm shadow-sm focus:border-[#1E7BC8] focus:ring-2 focus:ring-[#1E7BC8]/20">
-        </div>
+        </form>
 
         @if($riwayat->count())
 
@@ -50,14 +52,14 @@
                     @php
                         $badge = match($item->status) {
                             'Selesai' => 'bg-emerald-50 text-emerald-600 ring-emerald-100',
-                            'Diproses' => 'bg-sky-50 text-sky-600 ring-sky-100',
+                            'Diproses', 'Dicuci', 'Dikeringkan', 'Siap Diambil' => 'bg-sky-50 text-sky-600 ring-sky-100',
                             'Dibatalkan' => 'bg-rose-50 text-rose-600 ring-rose-100',
                             default => 'bg-amber-50 text-amber-600 ring-amber-100',
                         };
 
                         $kodeUrl = ltrim($item->nomor_pesanan,'#');
                         $mb = $item->metode_bayar;
-                        $adaNota = in_array($item->status,['Diproses','Selesai']);
+                        $adaNota = in_array($item->status,['Diproses','Dicuci', 'Dikeringkan', 'Siap Diambil', 'Selesai']);
                     @endphp
 
                     <div class="kartu-pesanan rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-100 hover:shadow-md"
@@ -67,7 +69,7 @@
 
                             <div class="min-w-[160px]">
                                 <p class="font-semibold text-[#1566AD]">
-                                    {{ $item->nomor_pesanan }}
+                                    #{{ $item->nomor_pesanan }}
                                 </p>
 
                                 <span class="mt-2 inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-semibold ring-1 {{ $badge }}">
@@ -143,7 +145,7 @@
                                         Menunggu Verifikasi
                                     </span>
 
-                                @elseif(in_array($item->status,['Diproses','Selesai']))
+                                @elseif(in_array($item->status,['Diproses', 'Dicuci', 'Dikeringkan', 'Siap Diambil', 'Selesai']))
 
                                     <a href="{{ route('pesanan.nota',['kode'=>$kodeUrl]) }}"
                                        class="rounded-lg bg-[#1566AD] px-4 py-2 text-center text-sm font-semibold text-white">
@@ -177,13 +179,28 @@
 
             </div>
 
-            <p id="info-jumlah" class="mt-6 text-center text-xs text-slate-400">
-                Menampilkan {{ $riwayat->count() }} dari {{ $riwayat->count() }} pesanan
+            <p class="mt-6 text-center text-xs text-slate-400">
+                Menampilkan {{ $riwayat->firstItem() }} - {{ $riwayat->lastItem() }} dari {{ $riwayat->total() }} pesanan
             </p>
 
-            <p id="kosong-cari" class="hidden mt-6 text-center text-sm text-slate-400">
-                Tidak ada pesanan yang ditemukan.
-            </p>
+            <div class="mt-4 flex justify-center">
+                {{ $riwayat->onEachSide(1)->links() }}
+            </div>
+
+        @elseif(request('search'))
+
+            <div class="mt-8 rounded-2xl bg-white p-12 text-center shadow-sm">
+                <h2 class="text-lg font-bold">Tidak Ditemukan</h2>
+
+                <p class="mt-2 text-sm text-slate-500">
+                    Tidak ada pesanan yang cocok dengan pencarian "{{ request('search') }}".
+                </p>
+
+                <a href="{{ route('pesanan.riwayat') }}"
+                   class="mt-5 inline-flex rounded-lg bg-[#1566AD] px-5 py-3 font-semibold text-white">
+                    Reset Pencarian
+                </a>
+            </div>
 
         @else
 
@@ -204,40 +221,5 @@
 
     </div>
 </section>
-
-@push('scripts')
-<script>
-const input=document.getElementById('cari-pesanan');
-
-if(input){
-
-const cards=[...document.querySelectorAll('.kartu-pesanan')];
-const info=document.getElementById('info-jumlah');
-const kosong=document.getElementById('kosong-cari');
-const total=cards.length;
-
-input.addEventListener('input',()=>{
-
-let tampil=0;
-
-cards.forEach(card=>{
-
-const cocok=card.dataset.cari.includes(input.value.toLowerCase());
-
-card.classList.toggle('hidden',!cocok);
-
-if(cocok)tampil++;
-
-});
-
-info.textContent=`Menampilkan ${tampil} dari ${total} pesanan`;
-
-kosong.classList.toggle('hidden',tampil!==0);
-
-});
-
-}
-</script>
-@endpush
 
 @endsection

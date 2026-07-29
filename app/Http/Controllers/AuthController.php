@@ -144,10 +144,11 @@ class AuthController extends Controller
     public function updateAdminProfile(Request $request)
     {
         $data = $request->validate([
-            'name'  => ['required', 'string', 'max:100'],
-            'email' => ['required', 'email', 'max:100', 'unique:users,email,' . Auth::id()],
-            'phone' => ['nullable', 'string', 'max:20'],
-            'foto'  => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:2048'],
+            'name'   => ['required', 'string', 'max:100'],
+            'email'  => ['required', 'email', 'max:100', 'unique:users,email,' . Auth::id()],
+            'phone'  => ['nullable', 'string', 'max:20'],
+            'alamat' => ['nullable', 'string', 'max:255'],
+            'foto'   => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:2048'],
         ]);
 
         $user = Auth::user();

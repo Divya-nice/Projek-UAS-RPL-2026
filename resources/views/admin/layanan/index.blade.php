@@ -36,7 +36,7 @@
 
                 <tbody class="divide-y divide-slate-100">
 
-                    @foreach ($layanan as $item)
+                    @forelse ($layanan as $item)
 
                     <tr class="hover:bg-slate-50/70">
 
@@ -135,11 +135,28 @@
 
                     </tr>
 
-                    @endforeach
+                    @empty
+
+                    <tr>
+                        <td colspan="5" class="px-5 py-8 text-center text-slate-500">
+                            Belum ada layanan.
+                        </td>
+                    </tr>
+
+                    @endforelse
 
                 </tbody>
             </table>
         </div>
+
+        @if($layanan->total() > 0)
+            <div class="flex flex-col gap-3 border-t border-slate-100 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+                <p class="text-sm text-slate-500">
+                    Menampilkan {{ $layanan->firstItem() }} - {{ $layanan->lastItem() }} dari {{ $layanan->total() }} layanan
+                </p>
+                {{ $layanan->links() }}
+            </div>
+        @endif
     </div>
 
 </div>
